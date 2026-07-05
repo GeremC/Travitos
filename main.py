@@ -130,7 +130,7 @@ def main():
                     log.warning("%s : %s", ent["nom"], e)
                 etat = ("hors zone" if ent.get("hors_zone") else
                         "carrières +" if ent.get("page_carrieres") else
-                        "site +" if ent.get("site") else "introuvable")
+                        "site +" if ent.get("site") else "N'existe plus!")
                 print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
                       flush=True)
                 if i % 10 == 0:
@@ -164,7 +164,7 @@ def main():
                         log.warning("%s : %s", ent["nom"], e)
                     etat = ("hors zone" if ent.get("hors_zone") else
                             "carrières +" if ent.get("page_carrieres") else
-                            "site +" if ent.get("site") else "introuvable")
+                            "site +" if ent.get("site") else "N'existe plus!")
                     print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
                           flush=True)
                     if i % 10 == 0:
