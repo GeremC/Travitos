@@ -65,6 +65,15 @@ NAF_CODES = {
     "78.10Z": ("Activités des agences de placement de main-d'œuvre", "12"),
     "82.11Z": ("Services administratifs combinés de bureau", "12"),
     "85.60Z": ("Activités de soutien à l'enseignement", "12"),
+    "64.19Z": ("Banques / intermédiations monétaires", "21"),
+    "65.12Z": ("Autres assurances", "21"),
+    "66.22Z": ("Activités des agents d'assurance", "12"),
+    "79.11Z": ("Agences de voyage", "11"),
+    "91.01Z": ("Bibliothèques et archives", "11"),
+    "91.02Z": ("Musées", "11"),
+    "55.10Z": ("Hôtels", "12"),
+    "86.10Z": ("Activités hospitalières", "21"),
+    "61.90Z": ("Autres télécommunications", "12"),
 }
 TRANCHES_EFFECTIF = ["00", "01", "02", "03", "11", "12", "21", "22",
                      "31", "32", "41", "42", "51", "52", "53"]
