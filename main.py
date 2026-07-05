@@ -72,6 +72,8 @@ def main():
                     help="saute la vérification « présent sur Indeed »")
     ap.add_argument("--frais", action="store_true",
                     help="ignore le cache et re-télécharge tout")
+    ap.add_argument("--mode", choices=["complet", "reprise"], default=None,
+                    help="force le mode sans demande interactive (pour GUI)")
     ap.add_argument("--naf", nargs="*", default=None,
                     help="limite l'annuaire à ces codes NAF (ex: 74.30Z)")
     ap.add_argument("-v", "--verbeux", action="store_true")
@@ -87,7 +89,10 @@ def main():
                             if k in args.naf}
 
     SORTIE.mkdir(exist_ok=True)
-    mode = demander_mode() if not args.frais else "complet"
+    if args.mode:
+        mode = args.mode
+    else:
+        mode = demander_mode() if not args.frais else "complet"
     fetcher = Fetcher(CACHE, frais=args.frais)
 
     def ecrire_sorties(offres_par_ent, entreprises, en_cours):

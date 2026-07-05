@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travitos</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: #272822; color: #f8f8f2; font: 14px/1.5 'Segoe UI', system-ui, sans-serif;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+a { color: #66d9ef; }
+a.disabled { color: #75715e; pointer-events: none; }
+
+.container {
+  display: flex; flex: 1; min-height: 0; gap: 0;
+}
+.panel {
+  display: flex; flex-direction: column; padding: 16px 20px; overflow-y: auto;
+}
+aside.panel {
+  width: 360px; min-width: 360px; background: #1e1f1c;
+  border-right: 1px solid #3e3d32;
+}
+main.panel { flex: 1; background: #1b1c18; }
+
+h1 { font-size: 22px; font-weight: 700; color: #a6e22e; margin-bottom: 16px; }
+h2 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: #75715e; margin: 16px 0 8px;
+}
+section + section { margin-top: 4px; }
+
+label, .label {
+  display: flex; align-items: flex-start; gap: 6px;
+  cursor: pointer; padding: 3px 0; font-size: 13px;
+}
+label:hover { color: #e6db74; }
+input[type="radio"], input[type="checkbox"] { accent-color: #a6e22e; margin-top: 2px; }
+input[type="number"] {
+  width: 80px; margin-left: auto; background: #3e3d32; border: 1px solid #555;
+  color: #f8f8f2; padding: 2px 6px; border-radius: 3px; font-size: 13px;
+}
+
+.hint { font-size: 12px; color: #75715e; margin: 2px 0 0 18px; }
+
+fieldset {
+  border: 1px solid #3e3d32; border-radius: 4px; padding: 6px 10px;
+  max-height: 200px; overflow-y: auto; margin: 4px 0;
+}
+fieldset::-webkit-scrollbar { width: 6px; }
+fieldset::-webkit-scrollbar-track { background: transparent; }
+fieldset::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+legend {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: #75715e; padding: 0 4px;
+}
+
+button {
+  margin-top: 16px; width: 100%; padding: 10px;
+  background: #a6e22e; color: #272822; border: none; border-radius: 4px;
+  font-size: 15px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+button:hover { background: #b8f33e; }
+button:disabled { background: #555; color: #888; cursor: not-allowed; }
+
+#resultats ul { list-style: none; margin-top: 4px; }
+#resultats li { padding: 2px 0; font-size: 13px; }
+
+/* Console */
+#console { padding: 12px 16px; }
+#console-header {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: #75715e; margin-bottom: 8px; flex-shrink: 0;
+}
+#output {
+  flex: 1; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+  font: 13px/1.4 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  color: #f8f8f2;
+}
+#output::-webkit-scrollbar { width: 8px; }
+#output::-webkit-scrollbar-track { background: transparent; }
+#output::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+
+.line-info  { color: #f8f8f2; }
+.line-warn  { color: #fd971f; }
+.line-error { color: #f92672; }
+.line-succ  { color: #a6e22e; }
+.line-label  { color: #75715e; }
+.line-em { color: #66d9ef; }
+</style>
+</head>
+<body>
+<div class="container">
+  <aside class="panel">
+    <h1>Travitos</h1>
+
+    <section>
+      <h2>Mode</h2>
+      <label><input type="radio" name="mode" value="reprise" checked>
+        Réutiliser les entreprises en cache (rapide)</label>
+      <label><input type="radio" name="mode" value="complet">
+        Nouvelle découverte (lent)</label>
+      <p class="hint">Le cache suffit pour ré-évaluer les offres avec des critères modifiés. Ne relancer la découverte que pour trouver de nouvelles entreprises.</p>
+    </section>
+
+    <section>
+      <h2>Options</h2>
+      <label>Max entreprises
+        <input type="number" name="max_entreprises" min="1" placeholder="—">
+      </label>
+
+      <fieldset>
+        <legend>Codes NAF</legend>
+        {% for code, (label, _) in naf_codes.items() %}
+        <label><input type="checkbox" name="naf" value="{{ code }}" checked>
+          <span title="{{ label }}">{{ code }}</span></label>
+        {% endfor %}
+      </fieldset>
+
+      <label><input type="checkbox" name="sans_indeed">
+        Sans vérification Indeed</label>
+      <label><input type="checkbox" name="verbeux">
+        Mode verbeux</label>
+    </section>
+
+    <button id="run-btn">Lancer l'analyse</button>
+
+    <section id="resultats">
+      <h2>Résultats</h2>
+      <ul>
+        <li><a href="/sortie/rapport.html" id="link-rapport" class="disabled">Rapport HTML</a></li>
+        <li><a href="/sortie/resultats.csv" id="link-resultats" class="disabled">Résultats CSV</a></li>
+        <li><a href="/sortie/entreprises.csv" id="link-entreprises" class="disabled">Entreprises CSV</a></li>
+      </ul>
+    </section>
+  </aside>
+
+  <main class="panel" id="console">
+    <div id="console-header">Console</div>
+    <div id="output"></div>
+  </main>
+</div>
+
+<script>
+(function() {
+  const runBtn = document.getElementById('run-btn');
+  const output = document.getElementById('output');
+  const links = {
+    rapport: document.getElementById('link-rapport'),
+    resultats: document.getElementById('link-resultats'),
+    entreprises: document.getElementById('link-entreprises'),
+  };
+
+  let running = false;
+
+  function log(text, cls) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    if (cls) d.className = cls;
+    output.appendChild(d);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function clearConsole() {
+    output.innerHTML = '';
+  }
+
+  function updateLinks() {
+    fetch('/rapport-existe').then(r => r.json()).then(data => {
+      for (const [key, el] of Object.entries(links)) {
+        if (data[key]) {
+          el.classList.remove('disabled');
+        } else {
+          el.classList.add('disabled');
+        }
+      }
+    }).catch(() => {});
+  }
+
+  function startScan(formData) {
+    running = true;
+    runBtn.disabled = true;
+    clearConsole();
+    log('Lancement du scan…', 'line-succ');
+
+    fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    }).then(r => r.json()).then(data => {
+      if (data.error) {
+        log('ERREUR : ' + data.error, 'line-error');
+        running = false;
+        runBtn.disabled = false;
+        return;
+      }
+      const evtSource = new EventSource('/stream');
+      evtSource.onmessage = function(e) {
+        if (e.data === 'null') {
+          evtSource.close();
+          running = false;
+          runBtn.disabled = false;
+          log('=== Terminé ===', 'line-succ');
+          updateLinks();
+          return;
+        }
+        const line = JSON.parse(e.data);
+        let cls = 'line-info';
+        if (line.includes('erreur') || line.includes('ERREUR') || line.includes('Error'))
+          cls = 'line-error';
+        else if (line.includes('Terminé'))
+          cls = 'line-succ';
+        else if (line.match(/^\[/))
+          cls = 'line-label';
+        log(line, cls);
+      };
+      evtSource.onerror = function() {
+        evtSource.close();
+        running = false;
+        runBtn.disabled = false;
+        log('Connexion perdue.', 'line-error');
+        updateLinks();
+      };
+    }).catch(err => {
+      log('ERREUR : ' + err, 'line-error');
+      running = false;
+      runBtn.disabled = false;
+    });
+  }
+
+  runBtn.addEventListener('click', function() {
+    if (running) return;
+
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const maxEnt = document.querySelector('input[name="max_entreprises"]').value;
+    const nafCheckboxes = document.querySelectorAll('input[name="naf"]:checked');
+    const naf = Array.from(nafCheckboxes).map(cb => cb.value);
+    const sansIndeed = document.querySelector('input[name="sans_indeed"]').checked;
+    const verbeux = document.querySelector('input[name="verbeux"]').checked;
+
+    startScan({ mode, max_entreprises: maxEnt, naf, sans_indeed: sansIndeed, verbeux });
+  });
+
+  updateLinks();
+})();
+</script>
+</body>
+</html>
