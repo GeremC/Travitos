@@ -138,10 +138,36 @@ def main():
             # ----------- reprise depuis le cache (rapide)
             print("[1-3/6] Chargement des entreprises depuis le cache…",
                   flush=True)
-            entreprises = json.loads(ETAPE_DECOUVERTE.read_text())
-            if args.max_entreprises:
-                entreprises = entreprises[:args.max_entreprises]
-            print(f"      {len(entreprises)} entreprises chargées.")
+            if ETAPE_DECOUVERTE.exists():
+                entreprises = json.loads(ETAPE_DECOUVERTE.read_text())
+                print(f"      {len(entreprises)} entreprises chargées.")
+            else:
+                log.warning("Cache introuvable, bascule en mode complet.")
+                mode = "complet"
+                entreprises = discovery.decouvrir(fetcher)
+                if args.max_entreprises:
+                    entreprises = entreprises[:args.max_entreprises]
+                print(f"      {len(entreprises)} entreprises à analyser.")
+                sauvegarder_etape("1_entreprises", entreprises)
+                for i, ent in enumerate(entreprises, 1):
+                    try:
+                        careers.trouver_site(fetcher, ent)
+                        careers.trouver_page_carrieres(fetcher, ent)
+                        if (ent.get("source") == "recherche" and ent.get("site")
+                                and not careers.confirme_region(fetcher, ent)):
+                            ent["hors_zone"] = True
+                            ent["page_carrieres"] = None
+                    except Exception as e:
+                        log.warning("%s : %s", ent["nom"], e)
+                    etat = ("hors zone" if ent.get("hors_zone") else
+                            "carrières ✓" if ent.get("page_carrieres") else
+                            "site ✓" if ent.get("site") else "introuvable")
+                    print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
+                          flush=True)
+                    if i % 10 == 0:
+                        report.ecrire_csv_entreprises(entreprises,
+                                                      SORTIE / "entreprises.csv")
+                sauvegarder_etape("2_entreprises_enrichies", entreprises)
 
         avec_carrieres = [e for e in entreprises if e.get("page_carrieres")]
         print(f"      {len(avec_carrieres)} pages carrières trouvées.")
