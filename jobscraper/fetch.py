@@ -125,12 +125,14 @@ class Fetcher:
     # --------------------------------------------------------- Playwright
     def _nouvelle_page(self):
         if self._pw is None:
+            import os, sys
+            orig = os.dup(sys.stderr.fileno())
+            null_fd = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(null_fd, sys.stderr.fileno())
             try:
-                import contextlib, io
-                with contextlib.redirect_stderr(io.StringIO()):
-                    from playwright.sync_api import sync_playwright
-                    p = sync_playwright().start()
-                    browser = p.chromium.launch(headless=True)
+                from playwright.sync_api import sync_playwright
+                p = sync_playwright().start()
+                browser = p.chromium.launch(headless=True)
                 ctx = browser.new_context(user_agent=UA, locale="fr-FR")
                 try:
                     from playwright_stealth import Stealth
@@ -146,6 +148,10 @@ class Fetcher:
                 log.debug("Playwright indisponible : %s", e)
                 self._pw = "error"
                 return None
+            finally:
+                os.dup2(orig, sys.stderr.fileno())
+                os.close(null_fd)
+                os.close(orig)
         if self._pw == "error":
             return None
         page = self._pw[2].new_page()

@@ -81,8 +81,10 @@ def main():
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbeux else logging.INFO,
-        format="%(levelname)s %(name)s: %(message)s")
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        datefmt="%H:%M:%S")
     log = logging.getLogger("jobscraper")
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
     if args.naf:
         config.NAF_CODES = {k: v for k, v in config.NAF_CODES.items()
