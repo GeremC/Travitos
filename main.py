@@ -146,6 +146,7 @@ def main():
                 if i % 10 == 0:
                     report.ecrire_csv_entreprises(entreprises,
                                                   SORTIE / "entreprises.csv")
+                    sauvegarder_etape("2_entreprises_enrichies", entreprises)
             sauvegarder_etape("2_entreprises_enrichies", entreprises)
         else:
             # ----------- reprise depuis le cache (rapide)
@@ -193,6 +194,7 @@ def main():
                     if i % 10 == 0:
                         report.ecrire_csv_entreprises(entreprises,
                                                       SORTIE / "entreprises.csv")
+                        sauvegarder_etape("2_entreprises_enrichies", entreprises)
                 sauvegarder_etape("2_entreprises_enrichies", entreprises)
 
         avec_carrieres = [e for e in entreprises if e.get("page_carrieres")]

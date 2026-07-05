@@ -489,20 +489,20 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   const _origLog = log;
   log = function(text, cls) {
     _origLog(text, cls);
-    if (!text.match(/^\s*PROGRESS\s/)) spawnHeartsBottom(2);
+    if (!text.match(/^\s*PROGRESS\s/)) spawnHeartsBottom(6);
   };
 
   const _origMaj = majProgres;
   majProgres = function() {
     _origMaj();
-    spawnHeartsBottom(3);
+    spawnHeartsBottom(5);
   };
 
   runBtn.addEventListener('click', function() {
-    spawnHeartsBottom(8);
+    spawnHeartsBottom(15);
   });
-  tabConsole.addEventListener('click', function() { spawnHeartsBottom(4); });
-  tabRapport.addEventListener('click', function() { spawnHeartsBottom(4); });
+  tabConsole.addEventListener('click', function() { spawnHeartsBottom(8); });
+  tabRapport.addEventListener('click', function() { spawnHeartsBottom(8); });
 
   updateLinks();
 })();
