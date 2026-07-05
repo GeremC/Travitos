@@ -105,7 +105,8 @@ class Fetcher:
             data = {"text": r.text if r.ok else None, "status": r.status_code,
                     "url_finale": r.url, "ok": r.ok}
         except requests.RequestException as e:
-            log.debug("GET %s : %s", url, e)
+            if "NameResolutionError" not in str(e) and "Failed to resolve" not in str(e):
+                log.debug("GET %s : %s", url, e)
             data = {"text": None, "status": None, "url_finale": url,
                     "ok": False, "erreur": str(e)}
         self._cache_ecrire(cle, data)
