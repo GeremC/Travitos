@@ -39,7 +39,13 @@ class Fetcher:
     def __init__(self, cache_dir: Path, frais: bool = False):
         self.cache_dir = Path(cache_dir) / "http"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self._racine_cache = Path(cache_dir)
         self.frais = frais
+        self._sites_morts = set()
+        if not frais:
+            p = self._racine_cache / "sites_morts.json"
+            if p.exists():
+                self._sites_morts = set(json.loads(p.read_text(encoding="utf-8")))
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": UA,
@@ -190,6 +196,16 @@ class Fetcher:
                     pass
         self._cache_ecrire(cle, {"text": html, "ok": html is not None})
         return html
+
+    # -------------------------------------------------------- sites morts
+    def site_est_mort(self, nom_normalise: str) -> bool:
+        return nom_normalise in self._sites_morts
+
+    def marquer_site_mort(self, nom_normalise: str):
+        self._sites_morts.add(nom_normalise)
+        p = self._racine_cache / "sites_morts.json"
+        p.write_text(json.dumps(sorted(self._sites_morts), ensure_ascii=False),
+                     encoding="utf-8")
 
     def fermer(self):
         if self._pw and self._pw != "error":

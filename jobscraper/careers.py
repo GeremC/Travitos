@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 import config
 from jobscraper import ats
+from jobscraper.discovery import nom_normalise
 from jobscraper.fetch import Fetcher, domaine, domaine_blackliste, racine
 
 log = logging.getLogger("jobscraper.careers")
@@ -88,6 +89,9 @@ def trouver_site(fetcher: Fetcher, ent: dict) -> None:
     """Trouve le site officiel : domaine deviné, sinon moteur de recherche."""
     if ent.get("site"):
         return
+    cle = nom_normalise(ent["nom"])
+    if fetcher.site_est_mort(cle):
+        return
     site = _deviner_site(fetcher, ent)
     if site:
         ent["site"] = site
@@ -109,6 +113,7 @@ def trouver_site(fetcher: Fetcher, ent: dict) -> None:
         if _page_mentionne(html, ent["nom"]):
             ent["site"] = racine(url)
             return
+    fetcher.marquer_site_mort(cle)
 
 
 def _liens_carrieres_dans(html: str, base: str) -> list[str]:
