@@ -37,7 +37,8 @@ def sauvegarder_etape(nom: str, donnees):
     etapes = CACHE / "etapes"
     etapes.mkdir(parents=True, exist_ok=True)
     (etapes / f"{nom}.json").write_text(
-        json.dumps(donnees, ensure_ascii=False, indent=1))
+        json.dumps(donnees, ensure_ascii=False, indent=1),
+        encoding="utf-8")
 
 
 def demander_mode():
@@ -128,8 +129,8 @@ def main():
                 except Exception as e:
                     log.warning("%s : %s", ent["nom"], e)
                 etat = ("hors zone" if ent.get("hors_zone") else
-                        "carrières ✓" if ent.get("page_carrieres") else
-                        "site ✓" if ent.get("site") else "introuvable")
+                        "carrières +" if ent.get("page_carrieres") else
+                        "site +" if ent.get("site") else "introuvable")
                 print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
                       flush=True)
                 if i % 10 == 0:
@@ -162,8 +163,8 @@ def main():
                     except Exception as e:
                         log.warning("%s : %s", ent["nom"], e)
                     etat = ("hors zone" if ent.get("hors_zone") else
-                            "carrières ✓" if ent.get("page_carrieres") else
-                            "site ✓" if ent.get("site") else "introuvable")
+                            "carrières +" if ent.get("page_carrieres") else
+                            "site +" if ent.get("site") else "introuvable")
                     print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
                           flush=True)
                     if i % 10 == 0:
