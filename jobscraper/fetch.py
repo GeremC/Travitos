@@ -128,7 +128,9 @@ class Fetcher:
             try:
                 from playwright.sync_api import sync_playwright
                 p = sync_playwright().start()
-                browser = p.chromium.launch(headless=True)
+                import contextlib, io
+                with contextlib.redirect_stderr(io.StringIO()):
+                    browser = p.chromium.launch(headless=True)
                 ctx = browser.new_context(user_agent=UA, locale="fr-FR")
                 try:
                     from playwright_stealth import Stealth
