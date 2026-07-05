@@ -8,80 +8,102 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
-  background: #272822; color: #f8f8f2; font: 14px/1.5 'Segoe UI', system-ui, sans-serif;
+  background: #272822; color: #f8f8f2;
+  font: 14px/1.5 'Segoe UI', system-ui, sans-serif;
   display: flex; flex-direction: column; overflow: hidden;
 }
-a { color: #66d9ef; }
-a.disabled { color: #75715e; pointer-events: none; }
+a { color: #66d9ef; text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-.container {
-  display: flex; flex: 1; min-height: 0; gap: 0;
+/* Barre du haut */
+header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 8px 20px; background: #1e1f1c;
+  border-bottom: 1px solid #3e3d32; flex-shrink: 0;
 }
-.panel {
-  display: flex; flex-direction: column; padding: 16px 20px; overflow-y: auto;
-}
-aside.panel {
-  width: 360px; min-width: 360px; background: #1e1f1c;
-  border-right: 1px solid #3e3d32;
-}
-main.panel { flex: 1; background: #1b1c18; }
+header h1 { font-size: 18px; color: #a6e22e; font-weight: 700; }
+header nav { margin-left: auto; display: flex; gap: 12px; }
+header nav a { font-size: 13px; padding: 4px 10px; border-radius: 3px; }
+header nav a.active { background: #3e3d32; color: #f8f8f2; pointer-events: none; }
 
-h1 { font-size: 22px; font-weight: 700; color: #a6e22e; margin-bottom: 16px; }
-h2 {
+/* Corps : config + progression à gauche, contenu principal à droite */
+.container { display: flex; flex: 1; min-height: 0; }
+
+/* Panneau gauche : configuration + progression */
+aside {
+  width: 300px; min-width: 300px; background: #1e1f1c;
+  border-right: 1px solid #3e3d32; display: flex; flex-direction: column;
+  overflow-y: auto; padding: 12px 16px; gap: 8px;
+}
+aside h2 {
   font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-  color: #75715e; margin: 16px 0 8px;
+  color: #75715e; margin-top: 8px;
 }
-section + section { margin-top: 4px; }
+aside h2:first-child { margin-top: 0; }
 
 label, .label {
-  display: flex; align-items: flex-start; gap: 6px;
-  cursor: pointer; padding: 3px 0; font-size: 13px;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer; padding: 2px 0; font-size: 13px;
 }
 label:hover { color: #e6db74; }
-input[type="radio"], input[type="checkbox"] { accent-color: #a6e22e; margin-top: 2px; }
+input[type="radio"], input[type="checkbox"] { accent-color: #a6e22e; }
 input[type="number"] {
-  width: 80px; margin-left: auto; background: #3e3d32; border: 1px solid #555;
+  width: 70px; margin-left: auto; background: #3e3d32; border: 1px solid #555;
   color: #f8f8f2; padding: 2px 6px; border-radius: 3px; font-size: 13px;
 }
-
-.hint { font-size: 12px; color: #75715e; margin: 2px 0 0 18px; }
+.hint { font-size: 11px; color: #75715e; margin: 0 0 4px 18px; }
 
 fieldset {
-  border: 1px solid #3e3d32; border-radius: 4px; padding: 6px 10px;
-  max-height: 200px; overflow-y: auto; margin: 4px 0;
+  border: 1px solid #3e3d32; border-radius: 4px; padding: 4px 8px;
+  max-height: 140px; overflow-y: auto;
 }
-fieldset::-webkit-scrollbar { width: 6px; }
-fieldset::-webkit-scrollbar-track { background: transparent; }
+fieldset::-webkit-scrollbar { width: 5px; }
 fieldset::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-legend {
-  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-  color: #75715e; padding: 0 4px;
-}
+legend { font-size: 10px; text-transform: uppercase; color: #75715e; padding: 0 4px; }
+fieldset label { font-size: 12px; }
 
-button {
-  margin-top: 16px; width: 100%; padding: 10px;
+button#run-btn {
+  margin: 4px 0; width: 100%; padding: 8px;
   background: #a6e22e; color: #272822; border: none; border-radius: 4px;
-  font-size: 15px; font-weight: 700; cursor: pointer; transition: .15s;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: .15s;
 }
-button:hover { background: #b8f33e; }
-button:disabled { background: #555; color: #888; cursor: not-allowed; }
+button#run-btn:hover { background: #b8f33e; }
+button#run-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 
-#resultats ul { list-style: none; margin-top: 4px; }
-#resultats li { padding: 2px 0; font-size: 13px; }
+/* Progression */
+#progress { display: flex; flex-direction: column; gap: 6px; }
+.stat-row { display: flex; justify-content: space-between; font-size: 12px; }
+.stat-row .val { color: #e6db74; font-weight: 600; }
+.bar {
+  height: 14px; background: #3e3d32; border-radius: 7px; overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%; background: #a6e22e; border-radius: 7px;
+  transition: width .3s; width: 0%;
+}
+.bar-label {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 600; color: #272822;
+}
+
+/* Panneau principal : console ou rapport */
+main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
 /* Console */
-#console { padding: 12px 16px; }
+#console { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 #console-header {
+  padding: 6px 16px; background: #1b1c18;
   font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
-  color: #75715e; margin-bottom: 8px; flex-shrink: 0;
+  color: #75715e; border-bottom: 1px solid #3e3d32; flex-shrink: 0;
 }
 #output {
-  flex: 1; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+  flex: 1; overflow-y: auto; padding: 8px 16px;
+  white-space: pre-wrap; word-break: break-all;
   font: 13px/1.4 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-  color: #f8f8f2;
+  background: #1b1c18;
 }
 #output::-webkit-scrollbar { width: 8px; }
-#output::-webkit-scrollbar-track { background: transparent; }
 #output::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
 
 .line-info  { color: #f8f8f2; }
@@ -90,58 +112,87 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
 .line-succ  { color: #a6e22e; }
 .line-label  { color: #75715e; }
 .line-debug  { color: #75715e; }
-.line-em { color: #66d9ef; }
+
+/* Rapport */
+#rapport { display: none; flex: 1; flex-direction: column; }
+#rapport iframe {
+  flex: 1; border: none; background: #fff; width: 100%;
+}
+#rapport.visible, #console.visible { display: flex; }
+
+/* Résultats */
+#resultats ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+#resultats li { font-size: 12px; padding: 1px 0; }
+#resultats a.disabled { color: #555; pointer-events: none; }
 </style>
 </head>
 <body>
+
+<header>
+  <h1>Travitos</h1>
+  <nav>
+    <a href="#" id="tab-console" class="active">Console</a>
+    <a href="#" id="tab-rapport" class="disabled">Rapport</a>
+  </nav>
+</header>
+
 <div class="container">
-  <aside class="panel">
-    <h1>Travitos</h1>
+  <!-- Panneau gauche : config + progression -->
+  <aside>
+    <h2>Mode</h2>
+    <label><input type="radio" name="mode" value="reprise" checked>
+      Réutiliser le cache (rapide)</label>
+    <label><input type="radio" name="mode" value="complet">
+      Nouvelle découverte (lent)</label>
+    <p class="hint">Le cache suffit pour ré-évaluer les offres.</p>
 
-    <section>
-      <h2>Mode</h2>
-      <label><input type="radio" name="mode" value="reprise" checked>
-        Réutiliser les entreprises en cache (rapide)</label>
-      <label><input type="radio" name="mode" value="complet">
-        Nouvelle découverte (lent)</label>
-      <p class="hint">Le cache suffit pour ré-évaluer les offres avec des critères modifiés. Ne relancer la découverte que pour trouver de nouvelles entreprises.</p>
-    </section>
-
-    <section>
-      <h2>Options</h2>
-      <label>Max entreprises
-        <input type="number" name="max_entreprises" min="1" placeholder="—">
-      </label>
-
-      <fieldset>
-        <legend>Codes NAF</legend>
-        {% for code, (label, _) in naf_codes.items() %}
-        <label><input type="checkbox" name="naf" value="{{ code }}" checked>
-          <span title="{{ label }}">{{ code }}</span></label>
-        {% endfor %}
-      </fieldset>
-
-      <label><input type="checkbox" name="sans_indeed">
-        Sans vérification Indeed</label>
-      <label><input type="checkbox" name="verbeux">
-        Mode verbeux</label>
-    </section>
+    <h2>Options</h2>
+    <label>Max entreprises
+      <input type="number" name="max_entreprises" min="1" placeholder="—">
+    </label>
+    <fieldset>
+      <legend>Codes NAF</legend>
+      {% for code, (label, _) in naf_codes.items() %}
+      <label><input type="checkbox" name="naf" value="{{ code }}" checked>
+        {{ code }}</label>
+      {% endfor %}
+    </fieldset>
+    <label><input type="checkbox" name="sans_indeed">
+      Sans vérif. Indeed</label>
+    <label><input type="checkbox" name="verbeux">
+      Mode verbeux</label>
 
     <button id="run-btn">Lancer l'analyse</button>
 
-    <section id="resultats">
-      <h2>Résultats</h2>
+    <h2>Progression</h2>
+    <div id="progress">
+      <div class="stat-row"><span>Entreprises</span><span class="val" id="p-entreprises">0</span></div>
+      <div class="bar"><div class="bar-fill" id="p-bar"></div><div class="bar-label" id="p-pct">0%</div></div>
+      <div class="stat-row"><span>Sites trouvés</span><span class="val" id="p-sites">0</span></div>
+      <div class="stat-row"><span>Pages carrières</span><span class="val" id="p-carrieres">0</span></div>
+      <div class="stat-row"><span>Offres trouvées</span><span class="val" id="p-offres">0</span></div>
+      <div class="stat-row"><span>Temps</span><span class="val" id="p-temps">00:00</span></div>
+    </div>
+
+    <h2>Résultats</h2>
+    <div id="resultats">
       <ul>
         <li><a href="/sortie/rapport.html" id="link-rapport" class="disabled">Rapport HTML</a></li>
         <li><a href="/sortie/resultats.csv" id="link-resultats" class="disabled">Résultats CSV</a></li>
         <li><a href="/sortie/entreprises.csv" id="link-entreprises" class="disabled">Entreprises CSV</a></li>
       </ul>
-    </section>
+    </div>
   </aside>
 
-  <main class="panel" id="console">
-    <div id="console-header">Console</div>
-    <div id="output"></div>
+  <!-- Panneau principal : console / rapport -->
+  <main>
+    <div id="console" class="visible">
+      <div id="console-header">Console</div>
+      <div id="output"></div>
+    </div>
+    <div id="rapport">
+      <iframe id="rapport-frame" src="about:blank"></iframe>
+    </div>
   </main>
 </div>
 
@@ -149,13 +200,52 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
 (function() {
   const runBtn = document.getElementById('run-btn');
   const output = document.getElementById('output');
+  const tabConsole = document.getElementById('tab-console');
+  const tabRapport = document.getElementById('tab-rapport');
+  const panelConsole = document.getElementById('console');
+  const panelRapport = document.getElementById('rapport');
+  const rapportFrame = document.getElementById('rapport-frame');
   const links = {
     rapport: document.getElementById('link-rapport'),
     resultats: document.getElementById('link-resultats'),
     entreprises: document.getElementById('link-entreprises'),
   };
 
+  // Éléments progression
+  const pEntreprises = document.getElementById('p-entreprises');
+  const pSites = document.getElementById('p-sites');
+  const pCarrieres = document.getElementById('p-carrieres');
+  const pOffres = document.getElementById('p-offres');
+  const pTemps = document.getElementById('p-temps');
+  const pBar = document.getElementById('p-bar');
+  const pPct = document.getElementById('p-pct');
+
   let running = false;
+  let startTime = null;
+  let timerInterval = null;
+  let totalEntreprises = 0;
+  let comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0 };
+
+  function showTab(name) {
+    tabConsole.classList.toggle('active', name === 'console');
+    tabRapport.classList.toggle('active', name === 'rapport');
+    panelConsole.classList.toggle('visible', name === 'console');
+    panelRapport.classList.toggle('visible', name === 'rapport');
+  }
+
+  tabConsole.addEventListener('click', function(e) {
+    e.preventDefault();
+    showTab('console');
+  });
+
+  tabRapport.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!tabRapport.classList.contains('disabled')) {
+      // Recharger le rapport à chaque ouverture
+      rapportFrame.src = '/sortie/rapport.html?' + Date.now();
+      showTab('rapport');
+    }
+  });
 
   function log(text, cls) {
     const d = document.createElement('div');
@@ -169,22 +259,81 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
     output.innerHTML = '';
   }
 
+  function majTemps() {
+    if (!startTime) return;
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(s / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    pTemps.textContent = m + ':' + sec;
+  }
+
+  function majProgres() {
+    if (totalEntreprises > 0) {
+      const pct = Math.min(100, Math.round(comptes.traitees / totalEntreprises * 100));
+      pBar.style.width = pct + '%';
+      pPct.textContent = pct + '%';
+    }
+    pEntreprises.textContent = comptes.traitees;
+    pSites.textContent = comptes.sites;
+    pCarrieres.textContent = comptes.carrieres;
+    pOffres.textContent = comptes.offres;
+  }
+
+  function extraireProgres(line) {
+    // [X/Y] NOM  statut
+    const m = line.match(/^\s*\[(\d+)\/(\d+)\]/);
+    if (m) {
+      comptes.traitees = parseInt(m[1]);
+      totalEntreprises = parseInt(m[2]);
+      if (line.includes('site +')) comptes.sites++;
+      if (line.includes('carrières +')) comptes.carrieres++;
+      if (line.includes("N'existe plus!")) comptes.traitees = comptes.traitees;
+      majProgres();
+      return;
+    }
+    // X offre(s)
+    const o = line.match(/\b(\d+)\s+offre\(s\)/);
+    if (o) {
+      comptes.offres += parseInt(o[1]);
+      majProgres();
+      return;
+    }
+    // Offres retenues : X
+    const r = line.match(/Offres retenues\s*:\s*(\d+)/);
+    if (r) {
+      comptes.offres = parseInt(r[1]);
+      majProgres();
+    }
+  }
+
   function updateLinks() {
     fetch('/rapport-existe').then(r => r.json()).then(data => {
       for (const [key, el] of Object.entries(links)) {
-        if (data[key]) {
-          el.classList.remove('disabled');
-        } else {
-          el.classList.add('disabled');
-        }
+        el.classList.toggle('disabled', !data[key]);
+      }
+      if (data.rapport) {
+        tabRapport.classList.remove('disabled');
       }
     }).catch(() => {});
+  }
+
+  function showRapport() {
+    tabRapport.classList.remove('disabled');
+    rapportFrame.src = '/sortie/rapport.html?' + Date.now();
+    showTab('rapport');
   }
 
   function startScan(formData) {
     running = true;
     runBtn.disabled = true;
     clearConsole();
+    showTab('console');
+    comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0 };
+    totalEntreprises = 0;
+    startTime = Date.now();
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(majTemps, 1000);
+    majProgres();
     log('Lancement du scan…', 'line-succ');
 
     fetch('/run', {
@@ -204,11 +353,14 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
           evtSource.close();
           running = false;
           runBtn.disabled = false;
+          if (timerInterval) clearInterval(timerInterval);
           log('=== Terminé ===', 'line-succ');
           updateLinks();
+          setTimeout(showRapport, 500);
           return;
         }
         const line = JSON.parse(e.data);
+        extraireProgres(line);
         let cls = 'line-info';
         if (line.match(/^\d{2}:\d{2}:\d{2}\s+ERROR\b/))
           cls = 'line-error';
@@ -226,6 +378,7 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
         evtSource.close();
         running = false;
         runBtn.disabled = false;
+        if (timerInterval) clearInterval(timerInterval);
         log('Connexion perdue.', 'line-error');
         updateLinks();
       };
@@ -238,14 +391,12 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
 
   runBtn.addEventListener('click', function() {
     if (running) return;
-
     const mode = document.querySelector('input[name="mode"]:checked').value;
     const maxEnt = document.querySelector('input[name="max_entreprises"]').value;
     const nafCheckboxes = document.querySelectorAll('input[name="naf"]:checked');
     const naf = Array.from(nafCheckboxes).map(cb => cb.value);
     const sansIndeed = document.querySelector('input[name="sans_indeed"]').checked;
     const verbeux = document.querySelector('input[name="verbeux"]').checked;
-
     startScan({ mode, max_entreprises: maxEnt, naf, sans_indeed: sansIndeed, verbeux });
   });
 

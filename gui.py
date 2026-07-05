@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interface web locale pour Travitos.
+"""Point d'entrée de l'interface web Travitos.
 
 Usage :
     python gui.py
@@ -8,101 +8,9 @@ Puis ouvrir http://localhost:5000
 """
 
 import argparse
-import json
-import os
-import subprocess
-import sys
-import threading
 import webbrowser
-from pathlib import Path
-from queue import Queue
 
-from flask import Flask, Response, jsonify, render_template, request, send_from_directory
-
-import config
-
-RACINE = Path(__file__).parent
-SORTIE = RACINE / "sortie"
-
-app = Flask(__name__)
-
-process = None
-output_queue = Queue()
-
-
-def run_scan(args_list):
-    global process
-    env = os.environ.copy()
-    process = subprocess.Popen(
-        [sys.executable, str(RACINE / "main.py")] + args_list,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        env=env, text=True, bufsize=1,
-    )
-    for line in process.stdout:
-        output_queue.put(line)
-    process.wait()
-    output_queue.put(None)
-    process = None
-
-
-@app.route("/")
-def index():
-    return render_template("gui.html", naf_codes=config.NAF_CODES)
-
-
-@app.route("/run", methods=["POST"])
-def run():
-    global process, output_queue
-    if process is not None:
-        return jsonify({"error": "Un scan est déjà en cours"}), 409
-
-    data = request.get_json()
-    args = ["--mode", data.get("mode", "reprise")]
-
-    max_ent = data.get("max_entreprises", "")
-    if max_ent:
-        args.extend(["--max-entreprises", str(max_ent)])
-
-    naf = data.get("naf", [])
-    if naf:
-        args.extend(["--naf"] + naf)
-
-    if data.get("sans_indeed"):
-        args.append("--sans-indeed-check")
-    if data.get("verbeux"):
-        args.append("-v")
-
-    while not output_queue.empty():
-        output_queue.get()
-
-    threading.Thread(target=run_scan, args=(args,), daemon=True).start()
-    return jsonify({"status": "ok"})
-
-
-@app.route("/stream")
-def stream():
-    def generate():
-        while True:
-            line = output_queue.get()
-            if line is None:
-                break
-            yield f"data: {json.dumps(line.rstrip())}\n\n"
-        yield "data: null\n\n"
-    return Response(generate(), mimetype="text/event-stream")
-
-
-@app.route("/sortie/<path:filename>")
-def sortie_files(filename):
-    return send_from_directory(SORTIE, filename)
-
-
-@app.route("/rapport-existe")
-def rapport_existe():
-    return jsonify({
-        "rapport": (SORTIE / "rapport.html").exists(),
-        "resultats": (SORTIE / "resultats.csv").exists(),
-        "entreprises": (SORTIE / "entreprises.csv").exists(),
-    })
+from gui_app.server import app
 
 
 if __name__ == "__main__":
