@@ -126,10 +126,10 @@ class Fetcher:
     def _nouvelle_page(self):
         if self._pw is None:
             try:
-                from playwright.sync_api import sync_playwright
-                p = sync_playwright().start()
                 import contextlib, io
                 with contextlib.redirect_stderr(io.StringIO()):
+                    from playwright.sync_api import sync_playwright
+                    p = sync_playwright().start()
                     browser = p.chromium.launch(headless=True)
                 ctx = browser.new_context(user_agent=UA, locale="fr-FR")
                 try:
