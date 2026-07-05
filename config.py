@@ -263,7 +263,7 @@ DELAI_BING_S = 4.0             # Bing (via navigateur) tolère un rythme plus so
 RECHERCHE_COOLDOWN_S = 600     # repos d'un moteur après un blocage…
 RECHERCHE_COOLDOWN_MAX_S = 3600  # …doublé à chaque blocage consécutif, plafonné
 RECHERCHE_PAUSE_S = 90         # pause quand tous les moteurs sont bloqués
-RECHERCHE_TOURS = 3            # nombre de tours avant d'abandonner une requête
+RECHERCHE_TOURS = 1            # 1 tour suffit ; si tous bloqués, abandon direct
 TIMEOUT_RECHERCHE = (8, 12)    # (connexion, lecture) — un moteur qui ne répond
                                # pas vite est un moteur qui bloque
 DELAI_API_ANNUAIRE_S = 0.4
