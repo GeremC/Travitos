@@ -48,6 +48,7 @@ class Fetcher:
         self._dernier_hit: dict[str, float] = {}
         self._repos_moteur: dict[str, float] = {}
         self._blocs_moteur: dict[str, int] = {}
+        self._recherche_abandonnee = False
         self._pw = None  # (playwright, browser, context), lancé paresseusement
         self._stealth_v1 = None
 
@@ -189,6 +190,9 @@ class Fetcher:
 
     def recherche(self, requete: str, max_resultats: int = 8) -> list[dict]:
         """Recherche web -> [{titre, url}]."""
+        if self._recherche_abandonnee:
+            return []
+
         def _filtrer(res):
             return [r for r in res if r["url"].startswith("http")
                     and "duckduckgo.com" not in domaine(r["url"])
@@ -204,9 +208,11 @@ class Fetcher:
                    ("bing-navigateur", self._bing_render),
                    ("ddg-navigateur", self._ddg_render)]
         for tour in range(config.RECHERCHE_TOURS):
+            aucun_tente = True
             for nom, fn in moteurs:
                 if time.time() < self._repos_moteur.get(nom, 0):
                     continue
+                aucun_tente = False
                 if nom.endswith("navigateur"):
                     log.info("recherche via %s : « %s »", nom, requete[:70])
                 resultats = fn(requete)
@@ -223,12 +229,15 @@ class Fetcher:
                 resultats = _filtrer(resultats)
                 self._cache_ecrire(cle, {"resultats": resultats, "ok": True})
                 return resultats[:max_resultats]
+            if aucun_tente:
+                break  # tous les moteurs en repos, inutile de réessayer
             if tour < config.RECHERCHE_TOURS - 1:
                 log.warning("tous les moteurs sont bloqués, pause de %ds…",
                             config.RECHERCHE_PAUSE_S)
                 time.sleep(config.RECHERCHE_PAUSE_S)
                 self._repos_moteur.clear()
-        log.error("recherche abandonnée : « %s »", requete)
+        self._recherche_abandonnee = True
+        log.warning("Moteurs de recherche bloqués, bascule sur annuaire uniquement.")
         return []  # non mis en cache : sera retentée à la prochaine relance
 
     @staticmethod

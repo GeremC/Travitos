@@ -66,8 +66,6 @@ def run():
     if naf:
         args.extend(["--naf"] + naf)
 
-    if data.get("sans_recherche"):
-        args.append("--sans-recherche")
     if data.get("sans_indeed"):
         args.append("--sans-indeed-check")
     if data.get("verbeux"):

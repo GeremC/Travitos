@@ -120,8 +120,6 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
         {% endfor %}
       </fieldset>
 
-      <label><input type="checkbox" name="sans_recherche">
-        Sans recherche web (annuaire uniquement)</label>
       <label><input type="checkbox" name="sans_indeed">
         Sans vérification Indeed</label>
       <label><input type="checkbox" name="verbeux">
@@ -240,11 +238,10 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
     const maxEnt = document.querySelector('input[name="max_entreprises"]').value;
     const nafCheckboxes = document.querySelectorAll('input[name="naf"]:checked');
     const naf = Array.from(nafCheckboxes).map(cb => cb.value);
-    const sansRecherche = document.querySelector('input[name="sans_recherche"]').checked;
     const sansIndeed = document.querySelector('input[name="sans_indeed"]').checked;
     const verbeux = document.querySelector('input[name="verbeux"]').checked;
 
-    startScan({ mode, max_entreprises: maxEnt, naf, sans_recherche: sansRecherche, sans_indeed: sansIndeed, verbeux });
+    startScan({ mode, max_entreprises: maxEnt, naf, sans_indeed: sansIndeed, verbeux });
   });
 
   updateLinks();

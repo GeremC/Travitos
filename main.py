@@ -76,8 +76,6 @@ def main():
                     help="force le mode sans demande interactive (pour GUI)")
     ap.add_argument("--naf", nargs="*", default=None,
                     help="limite l'annuaire à ces codes NAF (ex: 74.30Z)")
-    ap.add_argument("--sans-recherche", action="store_true",
-                    help="saute la découverte par moteur de recherche (annuaire uniquement)")
     ap.add_argument("-v", "--verbeux", action="store_true")
     args = ap.parse_args()
 
@@ -109,7 +107,7 @@ def main():
         if mode == "complet":
             # ---------------------------------------------- 1. découverte
             print("[1/6] Découverte des entreprises…", flush=True)
-            entreprises = discovery.decouvrir(fetcher, sans_recherche=args.sans_recherche)
+            entreprises = discovery.decouvrir(fetcher)
             if args.max_entreprises:
                 entreprises = entreprises[:args.max_entreprises]
             print(f"      {len(entreprises)} entreprises à analyser.")

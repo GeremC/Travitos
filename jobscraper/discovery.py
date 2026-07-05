@@ -137,14 +137,11 @@ def dedoublonner(entreprises: list[dict]) -> list[dict]:
     return uniques
 
 
-def decouvrir(fetcher: Fetcher, sans_recherche: bool = False) -> list[dict]:
-    if sans_recherche:
-        log.info("Recherche web désactivée — annuaire uniquement.")
-        entreprises = entreprises_annuaire(fetcher)
-    else:
-        # la source « recherche » d'abord : ses entreprises ont déjà un site,
-        # et souvent directement une page carrières
-        entreprises = entreprises_recherche(fetcher) + entreprises_annuaire(fetcher)
+def decouvrir(fetcher: Fetcher) -> list[dict]:
+    # la source « recherche » d'abord : ses entreprises ont déjà un site,
+    # et souvent directement une page carrières
+    # Si tous les moteurs sont bloqués, la bascule vers annuaire est automatique.
+    entreprises = entreprises_recherche(fetcher) + entreprises_annuaire(fetcher)
     uniques = dedoublonner(entreprises)
     log.info("Découverte : %d entreprises uniques (%d avant dédoublonnage)",
              len(uniques), len(entreprises))
