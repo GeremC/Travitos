@@ -58,6 +58,13 @@ NAF_CODES = {
     "58.29C": ("Édition de logiciels applicatifs", "11"),
     "62.01Z": ("Programmation informatique", "12"),
     "62.02A": ("Conseil en systèmes et logiciels informatiques", "12"),
+    "82.20Z": ("Activités de centres d'appels", "12"),
+    "84.12Z": ("Administration publique générale", "21"),
+    "84.13Z": ("Administration publique (tutelle) de la santé, de la formation, de la culture et des services sociaux", "21"),
+    "88.99B": ("Action sociale sans hébergement n.c.a.", "11"),
+    "78.10Z": ("Activités des agences de placement de main-d'œuvre", "12"),
+    "82.11Z": ("Services administratifs combinés de bureau", "12"),
+    "85.60Z": ("Activités de soutien à l'enseignement", "12"),
 }
 TRANCHES_EFFECTIF = ["00", "01", "02", "03", "11", "12", "21", "22",
                      "31", "32", "41", "42", "51", "52", "53"]
@@ -77,6 +84,18 @@ REQUETES_RECHERCHE = [
     'offre emploi terminologue Toulouse',
     'recrutement chargé de communication CDI Toulouse',
     '"rejoignez notre équipe" CDI Toulouse rédaction',
+    'offre emploi conseiller clientèle Toulouse',
+    'recrutement "conseiller clientèle" Toulouse',
+    'recrutement "agent d\'accueil" Toulouse',
+    'offre emploi téléconseiller Toulouse',
+    'recrutement hôte d\'accueil Toulouse',
+    'offre emploi service client Toulouse',
+    'recrutement "agent territorial" Toulouse',
+    'offre emploi accompagnement social Toulouse',
+    'offre emploi médiateur Toulouse',
+    'recrutement France Travail Toulouse',
+    'recrutement CAF Toulouse',
+    'offre emploi relation client Toulouse',
 ]
 
 # ------------------------------------------------------------------ scoring
