@@ -77,7 +77,8 @@ class Fetcher:
     def _cache_ecrire(self, cle: str, data: dict):
         data["ts"] = time.time()
         try:
-            self._chemin(cle).write_text(json.dumps(data, ensure_ascii=False))
+            self._chemin(cle).write_text(json.dumps(data, ensure_ascii=False),
+                                         encoding="utf-8")
         except Exception as e:
             log.debug("cache non écrit (%s) : %s", cle[:60], e)
 
