@@ -30,12 +30,38 @@ RACINE = Path(__file__).parent
 CACHE = RACINE / "cache"
 SORTIE = RACINE / "sortie"
 
+ETAPE_DECOUVERTE = CACHE / "etapes" / "2_entreprises_enrichies.json"
+
 
 def sauvegarder_etape(nom: str, donnees):
     etapes = CACHE / "etapes"
     etapes.mkdir(parents=True, exist_ok=True)
     (etapes / f"{nom}.json").write_text(
         json.dumps(donnees, ensure_ascii=False, indent=1))
+
+
+def demander_mode():
+    """Demande à l'utilisateur s'il veut tout regénérer ou réutiliser le cache."""
+    if not ETAPE_DECOUVERTE.exists():
+        return "complet"
+    print()
+    print("=" * 62)
+    print("  Découverte des entreprises déjà effectuée en cache.")
+    print("  Ce n'est pas nécessaire de la relancer à chaque fois :")
+    print("  réutiliser le cache suffit pour ré-évaluer les offres")
+    print("  avec des critères modifiés.")
+    print("=" * 62)
+    print()
+    print("  1 — Non, réutiliser les entreprises déjà trouvées (rapide)")
+    print("  2 — Oui, tout regénérer (lent, trouve de nouvelles entreprises)")
+    print()
+    while True:
+        choix = input("  Votre choix [1/2] : ").strip()
+        if choix == "1":
+            return "reprise"
+        if choix == "2":
+            return "complet"
+        print("   -> Réponse invalide. Tapez 1 ou 2.")
 
 
 def main():
@@ -61,6 +87,7 @@ def main():
                             if k in args.naf}
 
     SORTIE.mkdir(exist_ok=True)
+    mode = demander_mode() if not args.frais else "complet"
     fetcher = Fetcher(CACHE, frais=args.frais)
 
     def ecrire_sorties(offres_par_ent, entreprises, en_cours):
@@ -72,38 +99,45 @@ def main():
                            en_cours=en_cours)
 
     try:
-        # ---------------------------------------------- 1. découverte
-        print("[1/6] Découverte des entreprises…", flush=True)
-        entreprises = discovery.decouvrir(fetcher)
-        if args.max_entreprises:
-            entreprises = entreprises[:args.max_entreprises]
-        print(f"      {len(entreprises)} entreprises à analyser.")
-        sauvegarder_etape("1_entreprises", entreprises)
+        if mode == "complet":
+            # ---------------------------------------------- 1. découverte
+            print("[1/6] Découverte des entreprises…", flush=True)
+            entreprises = discovery.decouvrir(fetcher)
+            if args.max_entreprises:
+                entreprises = entreprises[:args.max_entreprises]
+            print(f"      {len(entreprises)} entreprises à analyser.")
+            sauvegarder_etape("1_entreprises", entreprises)
 
-        # ------------------------------------- 2-3. sites et carrières
-        print("[2-3/6] Sites officiels et pages carrières…", flush=True)
-        for i, ent in enumerate(entreprises, 1):
-            try:
-                careers.trouver_site(fetcher, ent)
-                careers.trouver_page_carrieres(fetcher, ent)
-                # les moteurs géolocalisent sur l'IP : on écarte les
-                # entreprises trouvées par recherche dont le site ne
-                # mentionne pas la région toulousaine
-                if (ent.get("source") == "recherche" and ent.get("site")
-                        and not careers.confirme_region(fetcher, ent)):
-                    ent["hors_zone"] = True
-                    ent["page_carrieres"] = None
-            except Exception as e:
-                log.warning("%s : %s", ent["nom"], e)
-            etat = ("hors zone" if ent.get("hors_zone") else
-                    "carrières ✓" if ent.get("page_carrieres") else
-                    "site ✓" if ent.get("site") else "introuvable")
-            print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
+            # ------------------------------------- 2-3. sites et carrières
+            print("[2-3/6] Sites officiels et pages carrières…", flush=True)
+            for i, ent in enumerate(entreprises, 1):
+                try:
+                    careers.trouver_site(fetcher, ent)
+                    careers.trouver_page_carrieres(fetcher, ent)
+                    if (ent.get("source") == "recherche" and ent.get("site")
+                            and not careers.confirme_region(fetcher, ent)):
+                        ent["hors_zone"] = True
+                        ent["page_carrieres"] = None
+                except Exception as e:
+                    log.warning("%s : %s", ent["nom"], e)
+                etat = ("hors zone" if ent.get("hors_zone") else
+                        "carrières ✓" if ent.get("page_carrieres") else
+                        "site ✓" if ent.get("site") else "introuvable")
+                print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
+                      flush=True)
+                if i % 10 == 0:
+                    report.ecrire_csv_entreprises(entreprises,
+                                                  SORTIE / "entreprises.csv")
+            sauvegarder_etape("2_entreprises_enrichies", entreprises)
+        else:
+            # ----------- reprise depuis le cache (rapide)
+            print("[1-3/6] Chargement des entreprises depuis le cache…",
                   flush=True)
-            if i % 10 == 0:
-                report.ecrire_csv_entreprises(entreprises,
-                                              SORTIE / "entreprises.csv")
-        sauvegarder_etape("2_entreprises_enrichies", entreprises)
+            entreprises = json.loads(ETAPE_DECOUVERTE.read_text())
+            if args.max_entreprises:
+                entreprises = entreprises[:args.max_entreprises]
+            print(f"      {len(entreprises)} entreprises chargées.")
+
         avec_carrieres = [e for e in entreprises if e.get("page_carrieres")]
         print(f"      {len(avec_carrieres)} pages carrières trouvées.")
 
