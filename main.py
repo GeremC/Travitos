@@ -24,6 +24,7 @@ from pathlib import Path
 
 import config
 from jobscraper import careers, discovery, indeed, jobs, report, scoring
+from jobscraper.discovery import nom_normalise
 from jobscraper.fetch import Fetcher
 
 RACINE = Path(__file__).parent
@@ -113,11 +114,16 @@ def main():
             entreprises = discovery.decouvrir(fetcher)
             if args.max_entreprises:
                 entreprises = entreprises[:args.max_entreprises]
+            # retirer les déjà mortes
+            entreprises = [e for e in entreprises
+                           if not fetcher.site_est_mort(nom_normalise(e["nom"]))]
             print(f"      {len(entreprises)} entreprises à analyser.")
             sauvegarder_etape("1_entreprises", entreprises)
 
             # ------------------------------------- 2-3. sites et carrières
             print("[2-3/6] Sites officiels et pages carrières…", flush=True)
+            total = len(entreprises)
+            morts = 0
             for i, ent in enumerate(entreprises, 1):
                 try:
                     careers.trouver_site(fetcher, ent)
@@ -131,7 +137,11 @@ def main():
                 etat = ("hors zone" if ent.get("hors_zone") else
                         "carrières +" if ent.get("page_carrieres") else
                         "site +" if ent.get("site") else "N'existe plus!")
-                print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
+                if etat == "N'existe plus!":
+                    morts += 1
+                else:
+                    print(f"      [{i}/{total}] {ent['nom'][:55]:55s} {etat}", flush=True)
+                print(f"      PROGRESS {json.dumps({'traitees': i, 'total': total, 'morts': morts})}",
                       flush=True)
                 if i % 10 == 0:
                     report.ecrire_csv_entreprises(entreprises,
@@ -143,15 +153,24 @@ def main():
                   flush=True)
             if ETAPE_DECOUVERTE.exists():
                 entreprises = json.loads(ETAPE_DECOUVERTE.read_text())
+                entreprises = [e for e in entreprises
+                               if not fetcher.site_est_mort(nom_normalise(e["nom"]))]
                 print(f"      {len(entreprises)} entreprises chargées.")
+                total = len(entreprises)
+                print(f"      PROGRESS {json.dumps({'traitees': 0, 'total': total, 'morts': 0})}",
+                      flush=True)
             else:
                 log.warning("Cache introuvable, bascule en mode complet.")
                 mode = "complet"
                 entreprises = discovery.decouvrir(fetcher)
                 if args.max_entreprises:
                     entreprises = entreprises[:args.max_entreprises]
+                entreprises = [e for e in entreprises
+                               if not fetcher.site_est_mort(nom_normalise(e["nom"]))]
                 print(f"      {len(entreprises)} entreprises à analyser.")
                 sauvegarder_etape("1_entreprises", entreprises)
+                total = len(entreprises)
+                morts = 0
                 for i, ent in enumerate(entreprises, 1):
                     try:
                         careers.trouver_site(fetcher, ent)
@@ -165,7 +184,11 @@ def main():
                     etat = ("hors zone" if ent.get("hors_zone") else
                             "carrières +" if ent.get("page_carrieres") else
                             "site +" if ent.get("site") else "N'existe plus!")
-                    print(f"      [{i}/{len(entreprises)}] {ent['nom'][:55]:55s} {etat}",
+                    if etat == "N'existe plus!":
+                        morts += 1
+                    else:
+                        print(f"      [{i}/{total}] {ent['nom'][:55]:55s} {etat}", flush=True)
+                    print(f"      PROGRESS {json.dumps({'traitees': i, 'total': total, 'morts': morts})}",
                           flush=True)
                     if i % 10 == 0:
                         report.ecrire_csv_entreprises(entreprises,

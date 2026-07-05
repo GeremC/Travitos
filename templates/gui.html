@@ -72,20 +72,11 @@ button#run-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 
 /* Progression */
 #progress { display: flex; flex-direction: column; gap: 6px; }
+.stats-col { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 .stat-row { display: flex; justify-content: space-between; font-size: 12px; }
 .stat-row .val { color: #e6db74; font-weight: 600; }
-.bar {
-  height: 14px; background: #3e3d32; border-radius: 7px; overflow: hidden;
-  position: relative;
-}
-.bar-fill {
-  height: 100%; background: #a6e22e; border-radius: 7px;
-  transition: width .3s; width: 0%;
-}
-.bar-label {
-  position: absolute; inset: 0; display: flex; align-items: center;
-  justify-content: center; font-size: 10px; font-weight: 600; color: #272822;
-}
+#pie-wrap { display: flex; align-items: center; gap: 10px; }
+#pie-chart { flex-shrink: 0; }
 
 /* Panneau principal : console ou rapport */
 main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -181,11 +172,15 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
     <h2>Progression</h2>
     <div id="progress">
-      <div class="stat-row"><span>Entreprises</span><span class="val" id="p-entreprises">0</span></div>
-      <div class="bar"><div class="bar-fill" id="p-bar"></div><div class="bar-label" id="p-pct">0%</div></div>
-      <div class="stat-row"><span>Sites trouvés</span><span class="val" id="p-sites">0</span></div>
-      <div class="stat-row"><span>Pages carrières</span><span class="val" id="p-carrieres">0</span></div>
-      <div class="stat-row"><span>Offres trouvées</span><span class="val" id="p-offres">0</span></div>
+      <div id="pie-wrap">
+        <canvas id="pie-chart" width="80" height="80"></canvas>
+        <div class="stats-col">
+          <div class="stat-row"><span style="color:#a6e22e">Trouvées</span><span class="val" id="p-trouvees">0</span></div>
+          <div class="stat-row"><span style="color:#f92672">Mortes</span><span class="val" id="p-morts">0</span></div>
+          <div class="stat-row"><span style="color:#555">Restantes</span><span class="val" id="p-restantes">0</span></div>
+        </div>
+      </div>
+      <div class="stat-row"><span>Offres</span><span class="val" id="p-offres">0</span></div>
       <div class="stat-row"><span>Temps</span><span class="val" id="p-temps">00:00</span></div>
     </div>
 
@@ -227,19 +222,18 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   };
 
   // Éléments progression
-  const pEntreprises = document.getElementById('p-entreprises');
-  const pSites = document.getElementById('p-sites');
-  const pCarrieres = document.getElementById('p-carrieres');
+  const pTrouvees = document.getElementById('p-trouvees');
+  const pMorts = document.getElementById('p-morts');
+  const pRestantes = document.getElementById('p-restantes');
   const pOffres = document.getElementById('p-offres');
   const pTemps = document.getElementById('p-temps');
-  const pBar = document.getElementById('p-bar');
-  const pPct = document.getElementById('p-pct');
+  const pieCanvas = document.getElementById('pie-chart');
 
   let running = false;
   let startTime = null;
   let timerInterval = null;
   let totalEntreprises = 0;
-  let comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0 };
+  let comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0, morts: 0 };
 
   function showTab(name) {
     tabConsole.classList.toggle('active', name === 'console');
@@ -263,6 +257,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   });
 
   function log(text, cls) {
+    if (text.match(/^\s*PROGRESS\s/)) return;  // invisible, données progression
     const d = document.createElement('div');
     d.textContent = text;
     if (cls) d.className = cls;
@@ -282,19 +277,59 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     pTemps.textContent = m + ':' + sec;
   }
 
-  function majProgres() {
-    if (totalEntreprises > 0) {
-      const pct = Math.min(100, Math.round(comptes.traitees / totalEntreprises * 100));
-      pBar.style.width = pct + '%';
-      pPct.textContent = pct + '%';
+  function dessinerCamembert() {
+    const trouvees = comptes.traitees - comptes.morts;
+    const mortes = comptes.morts;
+    const restantes = totalEntreprises - comptes.traitees;
+    pTrouvees.textContent = trouvees;
+    pMorts.textContent = mortes;
+    pRestantes.textContent = Math.max(0, restantes);
+    const ctx = pieCanvas.getContext('2d');
+    const cx = 40, cy = 40, r = 36;
+    ctx.clearRect(0, 0, 80, 80);
+    const parts = [
+      [trouvees, '#a6e22e'],
+      [mortes, '#f92672'],
+      [Math.max(0, restantes), '#3e3d32'],
+    ];
+    const somme = Math.max(trouvees + mortes + restantes, 1);
+    let start = -Math.PI / 2;
+    for (const [val, color] of parts) {
+      if (val <= 0) continue;
+      const angle = val / somme * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, start + angle);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      start += angle;
     }
-    pEntreprises.textContent = comptes.traitees;
-    pSites.textContent = comptes.sites;
-    pCarrieres.textContent = comptes.carrieres;
+    // trou central
+    ctx.fillStyle = '#1e1f1c';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function majProgres() {
+    dessinerCamembert();
     pOffres.textContent = comptes.offres;
   }
 
   function extraireProgres(line) {
+    // PROGRESS {json}
+    const p = line.match(/^\s*PROGRESS\s+(.+)/);
+    if (p) {
+      try {
+        const d = JSON.parse(p[1]);
+        comptes.traitees = d.traitees;
+        totalEntreprises = d.total;
+        comptes.morts = d.morts;
+        majProgres();
+      } catch(e) {}
+      return;
+    }
     // [X/Y] NOM  statut
     const m = line.match(/^\s*\[(\d+)\/(\d+)\]/);
     if (m) {
@@ -302,7 +337,6 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       totalEntreprises = parseInt(m[2]);
       if (line.includes('site +')) comptes.sites++;
       if (line.includes('carrières +')) comptes.carrieres++;
-      if (line.includes("N'existe plus!")) comptes.traitees = comptes.traitees;
       majProgres();
       return;
     }
@@ -343,7 +377,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     runBtn.disabled = true;
     clearConsole();
     showTab('console');
-    comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0 };
+    comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0, morts: 0 };
     totalEntreprises = 0;
     startTime = Date.now();
     if (timerInterval) clearInterval(timerInterval);
@@ -432,8 +466,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       const el = document.createElement('div');
       el.className = 'heart';
       el.textContent = '♥';
-      el.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
-      el.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
+      el.style.left = (x + (Math.random() - 0.5) * 50) + 'px';
+      el.style.top = (y + (Math.random() - 0.5) * 15) + 'px';
       el.style.fontSize = (14 + Math.random() * 12) + 'px';
       el.style.color = ['#f92672', '#ff4081', '#e91e63', '#ff6090', '#a6e22e'][Math.floor(Math.random() * 5)];
       el.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
@@ -443,35 +477,32 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     }
   }
 
-  function spawnHeartsOnElement(el, count) {
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    spawnHearts(r.left + r.width / 2, r.top + r.height / 2, count);
-  }
-
-  function spawnHeartsNearLine() {
-    const last = output.lastElementChild;
-    if (last) spawnHeartsOnElement(last, 3);
+  function spawnHeartsBottom(count) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    for (let i = 0; i < count; i++) {
+      spawnHearts(Math.random() * w, h - 5, 1);
+    }
   }
 
   // Patch log, majProgres, runBtn
   const _origLog = log;
   log = function(text, cls) {
     _origLog(text, cls);
-    spawnHeartsNearLine();
+    if (!text.match(/^\s*PROGRESS\s/)) spawnHeartsBottom(2);
   };
 
   const _origMaj = majProgres;
   majProgres = function() {
     _origMaj();
-    spawnHeartsOnElement(document.getElementById('progress'), 2);
+    spawnHeartsBottom(3);
   };
 
   runBtn.addEventListener('click', function() {
-    spawnHeartsOnElement(document.querySelector('header h1'), 8);
+    spawnHeartsBottom(8);
   });
-  tabConsole.addEventListener('click', function() { spawnHeartsOnElement(this, 4); });
-  tabRapport.addEventListener('click', function() { spawnHeartsOnElement(this, 4); });
+  tabConsole.addEventListener('click', function() { spawnHeartsBottom(4); });
+  tabRapport.addEventListener('click', function() { spawnHeartsBottom(4); });
 
   updateLinks();
 })();
