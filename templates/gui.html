@@ -89,6 +89,7 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
 .line-error { color: #f92672; }
 .line-succ  { color: #a6e22e; }
 .line-label  { color: #75715e; }
+.line-debug  { color: #75715e; }
 .line-em { color: #66d9ef; }
 </style>
 </head>
@@ -209,8 +210,12 @@ button:disabled { background: #555; color: #888; cursor: not-allowed; }
         }
         const line = JSON.parse(e.data);
         let cls = 'line-info';
-        if (line.includes('erreur') || line.includes('ERREUR') || line.includes('Error'))
+        if (line.match(/^\d{2}:\d{2}:\d{2}\s+ERROR\b/))
           cls = 'line-error';
+        else if (line.match(/^\d{2}:\d{2}:\d{2}\s+WARNING\b/))
+          cls = 'line-warn';
+        else if (line.match(/^\d{2}:\d{2}:\d{2}\s+DEBUG\b/))
+          cls = 'line-debug';
         else if (line.includes('Terminé'))
           cls = 'line-succ';
         else if (line.match(/^\[/))
