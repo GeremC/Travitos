@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Output du scraper
+sortie/
+sortie.zip
+
+# Cache HTTP et étapes
+cache/
+
+# Environnement / IDE
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
