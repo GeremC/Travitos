@@ -125,20 +125,27 @@ class Fetcher:
     # --------------------------------------------------------- Playwright
     def _nouvelle_page(self):
         if self._pw is None:
-            from playwright.sync_api import sync_playwright
-            p = sync_playwright().start()
-            browser = p.chromium.launch(headless=True)
-            ctx = browser.new_context(user_agent=UA, locale="fr-FR")
-            try:  # stealth v2, sinon v1, sinon rien
-                from playwright_stealth import Stealth
-                Stealth().apply_stealth_sync(ctx)
-            except Exception:
+            try:
+                from playwright.sync_api import sync_playwright
+                p = sync_playwright().start()
+                browser = p.chromium.launch(headless=True)
+                ctx = browser.new_context(user_agent=UA, locale="fr-FR")
                 try:
-                    from playwright_stealth import stealth_sync
-                    self._stealth_v1 = stealth_sync
+                    from playwright_stealth import Stealth
+                    Stealth().apply_stealth_sync(ctx)
                 except Exception:
-                    pass
-            self._pw = (p, browser, ctx)
+                    try:
+                        from playwright_stealth import stealth_sync
+                        self._stealth_v1 = stealth_sync
+                    except Exception:
+                        pass
+                self._pw = (p, browser, ctx)
+            except Exception as e:
+                log.debug("Playwright indisponible : %s", e)
+                self._pw = "error"
+                return None
+        if self._pw == "error":
+            return None
         page = self._pw[2].new_page()
         if self._stealth_v1:
             try:
@@ -158,6 +165,8 @@ class Fetcher:
         html, page = None, None
         try:
             page = self._nouvelle_page()
+            if page is None:
+                return None
             page.goto(url, timeout=30000, wait_until="domcontentloaded")
             page.wait_for_timeout(attente_ms)
             html = page.content()
@@ -173,7 +182,7 @@ class Fetcher:
         return html
 
     def fermer(self):
-        if self._pw:
+        if self._pw and self._pw != "error":
             p, browser, ctx = self._pw
             for fn in (ctx.close, browser.close, p.stop):
                 try:
@@ -296,6 +305,8 @@ class Fetcher:
         html, page = None, None
         try:
             page = self._nouvelle_page()
+            if page is None:
+                return None
             page.goto(url, timeout=30000, wait_until="domcontentloaded")
             if selecteur:  # on n'attend que le temps nécessaire
                 try:
