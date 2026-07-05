@@ -124,6 +124,21 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 #resultats ul { list-style: none; display: flex; flex-direction: column; gap: 2px; }
 #resultats li { font-size: 12px; padding: 1px 0; }
 #resultats a.disabled { color: #555; pointer-events: none; }
+
+/* VFX cœurs */
+.heart-container {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  overflow: hidden;
+}
+.heart {
+  position: absolute; font-size: 18px; line-height: 1;
+  animation: heartFloat 1.2s ease-out forwards;
+  will-change: transform, opacity;
+}
+@keyframes heartFloat {
+  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-80px) scale(0.3) rotate(30deg); }
+}
 </style>
 </head>
 <body>
@@ -399,6 +414,64 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     const verbeux = document.querySelector('input[name="verbeux"]').checked;
     startScan({ mode, max_entreprises: maxEnt, naf, sans_indeed: sansIndeed, verbeux });
   });
+
+  // VFX cœurs
+  let heartContainer = null;
+  function ensureHeartContainer() {
+    if (!heartContainer || !document.body.contains(heartContainer)) {
+      heartContainer = document.createElement('div');
+      heartContainer.className = 'heart-container';
+      document.body.appendChild(heartContainer);
+    }
+    return heartContainer;
+  }
+
+  function spawnHearts(x, y, count) {
+    const container = ensureHeartContainer();
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement('div');
+      el.className = 'heart';
+      el.textContent = '♥';
+      el.style.left = (x + (Math.random() - 0.5) * 40) + 'px';
+      el.style.top = (y + (Math.random() - 0.5) * 20) + 'px';
+      el.style.fontSize = (14 + Math.random() * 12) + 'px';
+      el.style.color = ['#f92672', '#ff4081', '#e91e63', '#ff6090', '#a6e22e'][Math.floor(Math.random() * 5)];
+      el.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+      el.style.transform = 'rotate(' + (Math.random() - 0.5) * 40 + 'deg)';
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1800);
+    }
+  }
+
+  function spawnHeartsOnElement(el, count) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    spawnHearts(r.left + r.width / 2, r.top + r.height / 2, count);
+  }
+
+  function spawnHeartsNearLine() {
+    const last = output.lastElementChild;
+    if (last) spawnHeartsOnElement(last, 3);
+  }
+
+  // Patch log, majProgres, runBtn
+  const _origLog = log;
+  log = function(text, cls) {
+    _origLog(text, cls);
+    spawnHeartsNearLine();
+  };
+
+  const _origMaj = majProgres;
+  majProgres = function() {
+    _origMaj();
+    spawnHeartsOnElement(document.getElementById('progress'), 2);
+  };
+
+  runBtn.addEventListener('click', function() {
+    spawnHeartsOnElement(document.querySelector('header h1'), 8);
+  });
+  tabConsole.addEventListener('click', function() { spawnHeartsOnElement(this, 4); });
+  tabRapport.addEventListener('click', function() { spawnHeartsOnElement(this, 4); });
 
   updateLinks();
 })();
