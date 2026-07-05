@@ -16,7 +16,7 @@ import threading
 from pathlib import Path
 from queue import Queue
 
-from flask import Flask, Response, jsonify, render_template, send_from_directory
+from flask import Flask, Response, jsonify, render_template, request, send_from_directory
 
 import config
 
