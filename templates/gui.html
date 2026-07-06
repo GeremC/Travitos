@@ -140,7 +140,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 }
 @keyframes heartFloat {
   0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
-  100% { opacity: 0; transform: translateY(-80px) scale(0.3) rotate(30deg); }
+  100% { opacity: 0; transform: translateY(-200px) scale(0.2) rotate(45deg); }
 }
 </style>
 </head>
@@ -501,10 +501,10 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       el.style.top = (y + (Math.random() - 0.5) * 15) + 'px';
       el.style.fontSize = (28 + Math.random() * 24) + 'px';
       el.style.color = ['#f92672', '#ff4081', '#e91e63', '#ff6090', '#a6e22e'][Math.floor(Math.random() * 5)];
-      el.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+      el.style.animationDuration = (1.0 + Math.random() * 1.0) + 's';
       el.style.transform = 'rotate(' + (Math.random() - 0.5) * 40 + 'deg)';
       container.appendChild(el);
-      setTimeout(() => el.remove(), 1800);
+      setTimeout(() => el.remove(), 2500);
     }
   }
 
@@ -529,11 +529,12 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     spawnHeartsBottom(10);
   };
 
-  runBtn.addEventListener('click', function() {
-    spawnHeartsBottom(30);
+  document.addEventListener('click', function(e) {
+    const t = e.target;
+    if (t.tagName === 'BUTTON' || t.tagName === 'INPUT' || t.closest('button') || t.closest('label')) {
+      spawnHeartsBottom(8);
+    }
   });
-  tabConsole.addEventListener('click', function() { spawnHeartsBottom(15); });
-  tabRapport.addEventListener('click', function() { spawnHeartsBottom(15); });
 
   updateLinks();
 })();
