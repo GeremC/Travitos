@@ -223,6 +223,10 @@ def main():
                 ecrire_sorties(offres_par_ent, entreprises, en_cours=True)
             print(f"      [{i}/{len(avec_carrieres)}] {ent['nom'][:55]:55s} "
                   f"{len(offres_ent)} offre(s)", flush=True)
+            if i % 10 == 0:
+                sauvegarder_etape("5_offres", [
+                    {"entreprise": ent["nom"], "offres": offres_ent}
+                    for ent, offres_ent in offres_par_ent])
         total = sum(len(o) for _, o in offres_par_ent)
         print(f"      {total} offres trouvées.")
 
