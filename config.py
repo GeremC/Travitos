@@ -59,8 +59,10 @@ NAF_CODES = {
     "62.01Z": ("Programmation informatique", "12"),
     "62.02A": ("Conseil en systèmes et logiciels informatiques", "12"),
     "82.20Z": ("Activités de centres d'appels", "12"),
-    "84.12Z": ("Administration publique générale", "21"),
-    "84.13Z": ("Administration publique (tutelle) de la santé, de la formation, de la culture et des services sociaux", "21"),
+    "84.11Z": ("Administration publique générale", "21"),
+    "84.12Z": ("Administration publique (tutelle) de la santé, de la formation, de la culture et des services sociaux", "21"),
+    "84.13Z": ("Administration publique (tutelle) des activités économiques", "21"),
+    "84.30Z": ("Sécurité sociale (CAF, CPAM, URSSAF…)", "21"),
     "88.99B": ("Action sociale sans hébergement n.c.a.", "11"),
     "78.10Z": ("Activités des agences de placement de main-d'œuvre", "12"),
     "82.11Z": ("Services administratifs combinés de bureau", "12"),
@@ -105,6 +107,11 @@ REQUETES_RECHERCHE = [
     'recrutement France Travail Toulouse',
     'recrutement CAF Toulouse',
     'offre emploi relation client Toulouse',
+    'recrutement sécurité sociale Toulouse',
+    'recrutement CPAM Toulouse',
+    'recrutement URSSAF Toulouse',
+    'offre emploi fonction publique territoriale Toulouse',
+    'recrutement mairie Toulouse',
 ]
 
 # ------------------------------------------------------------------ scoring

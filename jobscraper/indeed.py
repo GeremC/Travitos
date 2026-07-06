@@ -1,14 +1,15 @@
 """Étape 5b — Vérifier si une offre apparaît aussi sur Indeed.
 
-On ne scrape pas Indeed directement (Cloudflare) : on cherche
-« indeed entreprise titre » sur le web (sans opérateur site:, que Bing
-refuse aux robots). L'offre est marquée `sur_indeed` si un résultat Indeed
-mentionnant l'entreprise remonte.
+Deux méthodes :
+  1. Recherche web « indeed entreprise titre » (moteurs de recherche)
+  2. Requête directe sur fr.indeed.com si les moteurs sont bloqués
+L'offre est marquée `sur_indeed` dès qu'Indeed mentionne l'entreprise.
 """
 
 import logging
 import re
 import unicodedata
+import urllib.parse
 
 from jobscraper.fetch import Fetcher, domaine
 
@@ -32,27 +33,52 @@ def _nom_court(nom: str) -> str:
     return re.sub(r"\s+", " ", nom).strip()
 
 
+def _trouve_nom_dans_texte(nom_normalise: str, mots_nom: list[str],
+                           texte: str) -> bool:
+    """Vérifie si le nom ou ses mots significatifs apparaissent dans le texte."""
+    if not mots_nom:
+        return False
+    if nom_normalise[:10] in texte:
+        return True
+    return any(m in texte for m in mots_nom[:3])
+
+
 def sur_indeed(fetcher: Fetcher, ent: dict, offre: dict) -> bool:
     titre = _nettoyer(offre.get("titre", ""))
     nom = _nom_court(ent.get("nom", ""))
     if not titre or not nom:
         return False
-    requete = f"indeed {nom} {titre}"
-    resultats = fetcher.recherche(requete, max_resultats=6)
-    # un résultat Indeed compte s'il mentionne l'entreprise OU une bonne
-    # partie du titre du poste (dans le doute, on préfère écarter l'offre :
-    # l'utilisateur ne veut vraiment pas de doublons d'Indeed)
+
     mots_nom = [m for m in _normaliser(nom).split() if len(m) >= 3]
     mots_titre = [m for m in _normaliser(titre).split() if len(m) >= 4]
+    nom_norm = _normaliser(nom)
+
+    # Méthode 1 : recherche web (existante)
+    requete = f"indeed {nom} {titre}"
+    resultats = fetcher.recherche(requete, max_resultats=6)
     for r in resultats:
         if "indeed." not in domaine(r["url"]):
             continue
         texte_resultat = _normaliser(r["titre"] + " " + r["url"])
         if not mots_nom or any(m in texte_resultat for m in mots_nom):
-            log.info("Sur Indeed : %s — %s", nom, titre)
+            log.info("Sur Indeed (recherche) : %s — %s", nom, titre)
             return True
         if mots_titre and (sum(m in texte_resultat for m in mots_titre)
                            >= max(1, len(mots_titre) // 2)):
             log.info("Sur Indeed (titre proche) : %s — %s", nom, titre)
+            return True
+
+    # Méthode 2 : requête directe fr.indeed.com (contourne les moteurs bloqués)
+    if not mots_nom:
+        return False
+    url_indeed = (
+        f"https://fr.indeed.com/jobs?q={urllib.parse.quote(titre)}"
+        f"&l=Toulouse&vjk={urllib.parse.quote(nom[:20])}")
+    info = fetcher.info(url_indeed, timeout=(10, 20), ttl_j=0.5)
+    html = info.get("text")
+    if html and len(html) > 3000:
+        t = _normaliser(html[:200000])
+        if _trouve_nom_dans_texte(nom_norm, mots_nom, t):
+            log.info("Sur Indeed (direct) : %s — %s", nom, titre)
             return True
     return False
