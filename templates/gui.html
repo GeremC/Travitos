@@ -78,6 +78,18 @@ button#run-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 #pie-wrap { display: flex; align-items: center; gap: 10px; }
 #pie-chart { flex-shrink: 0; }
 
+/* Toggle vue Console / Rapport */
+.view-toggle { display: flex; gap: 0; margin-top: 4px; }
+.toggle-btn {
+  flex: 1; text-align: center; padding: 5px 0; font-size: 12px; font-weight: 600;
+  cursor: pointer; background: #3e3d32; color: #75715e; border: 1px solid #49483e;
+  transition: .15s; user-select: none;
+}
+.toggle-btn:first-child { border-radius: 4px 0 0 4px; }
+.toggle-btn:last-child { border-radius: 0 4px 4px 0; }
+.toggle-btn.active { background: #a6e22e; color: #272822; border-color: #a6e22e; }
+.toggle-btn.disabled { opacity: .4; cursor: not-allowed; }
+
 /* Panneau principal : console ou rapport */
 main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
@@ -192,6 +204,12 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         <li><a href="/sortie/entreprises.csv" id="link-entreprises" class="disabled">Entreprises CSV</a></li>
       </ul>
     </div>
+
+    <h2>Vue</h2>
+    <div class="view-toggle">
+      <span class="toggle-btn active" id="view-console">Console</span>
+      <span class="toggle-btn disabled" id="view-rapport">Rapport</span>
+    </div>
   </aside>
 
   <!-- Panneau principal : console / rapport -->
@@ -212,6 +230,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   const output = document.getElementById('output');
   const tabConsole = document.getElementById('tab-console');
   const tabRapport = document.getElementById('tab-rapport');
+  const viewConsole = document.getElementById('view-console');
+  const viewRapport = document.getElementById('view-rapport');
   const panelConsole = document.getElementById('console');
   const panelRapport = document.getElementById('rapport');
   const rapportFrame = document.getElementById('rapport-frame');
@@ -238,6 +258,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   function showTab(name) {
     tabConsole.classList.toggle('active', name === 'console');
     tabRapport.classList.toggle('active', name === 'rapport');
+    viewConsole.classList.toggle('active', name === 'console');
+    viewRapport.classList.toggle('active', name === 'rapport');
     panelConsole.classList.toggle('visible', name === 'console');
     panelRapport.classList.toggle('visible', name === 'rapport');
   }
@@ -250,7 +272,14 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   tabRapport.addEventListener('click', function(e) {
     e.preventDefault();
     if (!tabRapport.classList.contains('disabled')) {
-      // Recharger le rapport à chaque ouverture
+      rapportFrame.src = '/sortie/rapport.html?' + Date.now();
+      showTab('rapport');
+    }
+  });
+
+  viewConsole.addEventListener('click', function() { showTab('console'); });
+  viewRapport.addEventListener('click', function() {
+    if (!viewRapport.classList.contains('disabled')) {
       rapportFrame.src = '/sortie/rapport.html?' + Date.now();
       showTab('rapport');
     }
@@ -362,12 +391,14 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       }
       if (data.rapport) {
         tabRapport.classList.remove('disabled');
+        viewRapport.classList.remove('disabled');
       }
     }).catch(() => {});
   }
 
   function showRapport() {
     tabRapport.classList.remove('disabled');
+    viewRapport.classList.remove('disabled');
     rapportFrame.src = '/sortie/rapport.html?' + Date.now();
     showTab('rapport');
   }

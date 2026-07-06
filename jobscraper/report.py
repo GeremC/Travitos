@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import html
 import json
+import logging
 import re
 import urllib.parse
 from pathlib import Path
@@ -77,7 +78,11 @@ def enregistrer_vues(chemin: Path, vues: dict, lignes: list[dict]):
     aujourd_hui = datetime.date.today().isoformat()
     for l in lignes:
         vues.setdefault(l["lien_offre"], aujourd_hui)
-    Path(chemin).write_text(json.dumps(vues, ensure_ascii=False, indent=0))
+    try:
+        Path(chemin).write_text(json.dumps(vues, ensure_ascii=False, indent=0))
+    except OSError as e:
+        logging.getLogger("jobscraper.report").warning(
+            "Impossible d'écrire %s : %s", chemin, e)
 
 
 def lignes_offres(offres_par_ent: list[tuple[dict, list[dict]]]) -> list[dict]:
@@ -105,25 +110,33 @@ def lignes_offres(offres_par_ent: list[tuple[dict, list[dict]]]) -> list[dict]:
 
 
 def ecrire_csv_offres(lignes: list[dict], chemin: Path):
-    with open(chemin, "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=COLONNES_OFFRES)
-        w.writeheader()
-        w.writerows(lignes)
+    try:
+        with open(chemin, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=COLONNES_OFFRES)
+            w.writeheader()
+            w.writerows(lignes)
+    except OSError as e:
+        logging.getLogger("jobscraper.report").warning(
+            "Impossible d'écrire %s : %s", chemin, e)
 
 
 def ecrire_csv_entreprises(entreprises: list[dict], chemin: Path):
-    with open(chemin, "w", newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=COLONNES_ENTREPRISES)
-        w.writeheader()
-        for e in entreprises:
-            w.writerow({
-                "nom": e["nom"], "secteur": e.get("secteur", ""),
-                "naf": e.get("naf", ""), "ville": e.get("ville", ""),
-                "site": e.get("site", ""),
-                "page_carrieres": e.get("page_carrieres", ""),
-                "nb_offres_trouvees": e.get("nb_offres", 0),
-                "source": e.get("source", ""),
-            })
+    try:
+        with open(chemin, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=COLONNES_ENTREPRISES)
+            w.writeheader()
+            for e in entreprises:
+                w.writerow({
+                    "nom": e["nom"], "secteur": e.get("secteur", ""),
+                    "naf": e.get("naf", ""), "ville": e.get("ville", ""),
+                    "site": e.get("site", ""),
+                    "page_carrieres": e.get("page_carrieres", ""),
+                    "nb_offres_trouvees": e.get("nb_offres", 0),
+                    "source": e.get("source", ""),
+                })
+    except OSError as e:
+        logging.getLogger("jobscraper.report").warning(
+            "Impossible d'écrire %s : %s", chemin, e)
 
 
 def _e(s) -> str:
@@ -423,4 +436,8 @@ mettreAJourVisibilite();
 }})();
 </script>
 </body></html>"""
-    Path(chemin).write_text(doc, encoding="utf-8")
+    try:
+        Path(chemin).write_text(doc, encoding="utf-8")
+    except OSError as e:
+        logging.getLogger("jobscraper.report").warning(
+            "Impossible d'écrire %s : %s", chemin, e)
