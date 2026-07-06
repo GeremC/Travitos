@@ -223,18 +223,18 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
     <h2>Vue</h2>
     <div class="view-toggle">
-      <span class="toggle-btn active" id="view-console">Console</span>
-      <span class="toggle-btn disabled" id="view-rapport">Rapport</span>
+      <span class="toggle-btn" id="view-console">Console</span>
+      <span class="toggle-btn active" id="view-rapport">Rapport</span>
     </div>
   </aside>
 
   <!-- Panneau principal : console / rapport -->
   <main>
-    <div id="console" class="visible">
+    <div id="console">
       <div id="console-header">Console</div>
       <div id="output"></div>
     </div>
-    <div id="rapport">
+    <div id="rapport" class="visible">
       <iframe id="rapport-frame" src="about:blank"></iframe>
     </div>
   </main>
