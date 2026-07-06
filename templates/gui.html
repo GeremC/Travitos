@@ -499,7 +499,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       el.textContent = '♥';
       el.style.left = (x + (Math.random() - 0.5) * 50) + 'px';
       el.style.top = (y + (Math.random() - 0.5) * 15) + 'px';
-      el.style.fontSize = (14 + Math.random() * 12) + 'px';
+      el.style.fontSize = (28 + Math.random() * 24) + 'px';
       el.style.color = ['#f92672', '#ff4081', '#e91e63', '#ff6090', '#a6e22e'][Math.floor(Math.random() * 5)];
       el.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
       el.style.transform = 'rotate(' + (Math.random() - 0.5) * 40 + 'deg)';
@@ -520,20 +520,20 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   const _origLog = log;
   log = function(text, cls) {
     _origLog(text, cls);
-    if (!text.match(/^\s*PROGRESS\s/)) spawnHeartsBottom(6);
+    if (!text.match(/^\s*PROGRESS\s/)) spawnHeartsBottom(12);
   };
 
   const _origMaj = majProgres;
   majProgres = function() {
     _origMaj();
-    spawnHeartsBottom(5);
+    spawnHeartsBottom(10);
   };
 
   runBtn.addEventListener('click', function() {
-    spawnHeartsBottom(15);
+    spawnHeartsBottom(30);
   });
-  tabConsole.addEventListener('click', function() { spawnHeartsBottom(8); });
-  tabRapport.addEventListener('click', function() { spawnHeartsBottom(8); });
+  tabConsole.addEventListener('click', function() { spawnHeartsBottom(15); });
+  tabRapport.addEventListener('click', function() { spawnHeartsBottom(15); });
 
   updateLinks();
 })();
