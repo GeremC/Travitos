@@ -67,17 +67,16 @@ def sur_indeed(fetcher: Fetcher, ent: dict, offre: dict) -> str | None:
             log.info("Sur Indeed (recherche) : %s — %s", nom, titre)
             return r["url"]
 
-    # Méthode 2 : requête directe fr.indeed.com (contourne les moteurs bloqués)
+    # Méthode 2 : requête directe fr.indeed.com via Playwright (contourne les anti-bots)
     if not mots_nom:
         return None
     url_indeed = (
         f"https://fr.indeed.com/jobs?q={urllib.parse.quote(titre)}"
-        f"&l=Toulouse&vjk={urllib.parse.quote(nom[:20])}")
-    info = fetcher.info(url_indeed, timeout=(10, 20), ttl_j=0.5)
-    html = info.get("text")
+        f"&l=Toulouse")
+    html = fetcher.render(url_indeed, attente_ms=8000, ttl_j=0.5)
     if html and len(html) > 3000:
         t = _normaliser(html[:200000])
         if _trouve_nom_dans_texte(nom_norm, mots_nom, t):
-            log.info("Sur Indeed (direct) : %s — %s", nom, titre)
+            log.info("Sur Indeed (render) : %s — %s", nom, titre)
             return url_indeed
     return None
