@@ -13,8 +13,8 @@ from pathlib import Path
 
 COLONNES_OFFRES = ["entreprise", "titre", "lien_offre", "lieu",
                    "page_carrieres", "score", "score_linguistique",
-                   "sur_indeed", "exclue", "hors_zone", "liste_offres",
-                   "date_scan"]
+                   "sur_indeed", "indeed_url", "exclue", "hors_zone",
+                   "liste_offres", "date_scan"]
 
 _MOTS_CLE = (r"offres?|emplois?|jobs?|carrieres?|careers?|recrutements?|"
              r"postes?|positions?|annonces?|vacanc\w*|openings?|opportunit\w*")
@@ -100,6 +100,7 @@ def lignes_offres(offres_par_ent: list[tuple[dict, list[dict]]]) -> list[dict]:
                 "score": o.get("score", 0),
                 "score_linguistique": o.get("score_linguistique", 0),
                 "sur_indeed": "oui" if o.get("sur_indeed") else "non",
+                "indeed_url": o.get("indeed_url") or "",
                 "exclue": "oui" if o.get("exclue") else "non",
                 "hors_zone": "oui" if o.get("hors_zone") else "non",
                 "liste_offres": "oui" if _est_liste_offres(lien) else "non",
@@ -153,6 +154,13 @@ def _rendre_ligne(l: dict, controles: bool = False) -> str:
         badge = ' <span class="ling">linguistique</span>'
     liste_tag = (' <span class="muted">(Liste d\u2019offres)</span>'
                  if l.get("liste_offres") == "oui" else "")
+    indeed_tag = ""
+    indeed_url = l.get("indeed_url") or ""
+    if indeed_url:
+        indeed_tag = (
+            f'<a href="{_e(indeed_url)}" target="_blank"'
+            f' class="indeed-link" title="Voir sur Indeed">'
+            f'<span class="indeed-icon">in</span></a> ')
     cellule_action = ""
     if controles:
         cellule_action = (
@@ -165,7 +173,7 @@ def _rendre_ligne(l: dict, controles: bool = False) -> str:
         f'{cellule_action}'
         f'<td class="score">{l["score"]}</td>'
         f'<td class="ent">{_e(l["entreprise"])}</td>'
-        f'<td><a href="{_e(l["lien_offre"])}" target="_blank">'
+        f'<td>{indeed_tag}<a href="{_e(l["lien_offre"])}" target="_blank">'
         f'{_e(l["titre"])}</a>{badge}{liste_tag}</td>'
         f'<td class="lieu">{_e(l["lieu"])}</td>'
         f'</tr>')
@@ -188,9 +196,8 @@ _HEADER_CONTROLES = ("<thead><tr>"
 
 def ecrire_html(lignes: list[dict], entreprises: list[dict], chemin: Path,
                 en_cours: bool = False):
-    retenues = [l for l in lignes if l["sur_indeed"] == "non"
-                and l["exclue"] == "non" and l["hors_zone"] == "non"
-                and l["liste_offres"] == "non"]
+    retenues = [l for l in lignes if l["exclue"] == "non"
+                and l["hors_zone"] == "non" and l["liste_offres"] == "non"]
     sur_indeed = [l for l in lignes if l["sur_indeed"] == "oui"]
     spontanees = [e for e in entreprises
                   if e.get("page_carrieres") and not e.get("nb_offres")]
@@ -220,8 +227,12 @@ def ecrire_html(lignes: list[dict], entreprises: list[dict], chemin: Path,
  .score {{ text-align: center; font-weight: 600; color: #e6db74; width: 1.8rem; }}
  .ent {{ max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
  .lieu {{ max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
- .ling {{ background: #a6e22e; color: #272822; border-radius: 8px;
-          padding: 0 .4em; font-size: .65rem; font-weight: 600; white-space: nowrap; }}
+  .ling {{ background: #a6e22e; color: #272822; border-radius: 8px;
+           padding: 0 .4em; font-size: .65rem; font-weight: 600; white-space: nowrap; }}
+  .indeed-link {{ text-decoration: none; }}
+  .indeed-icon {{ display: inline-block; background: #003d9a; color: #fff;
+           font-size: .6rem; font-weight: 700; padding: 1px 3px; border-radius: 2px;
+           vertical-align: middle; line-height: 1.2; }}
  .muted {{ color: #75715e; font-size: .82rem; }}
  .col-cb {{ width: 1.5rem; text-align: center; }}
  .col-trash {{ width: 1.5rem; text-align: center; }}
@@ -286,9 +297,6 @@ utile pour candidater spontan\u00e9ment.</p>
          f' <span class="muted">— {_e(e.get("secteur", ""))} {_e(e.get("ville", ""))}</span></li>'
          for e in spontanees)}
 </ul>
-
-<h2>Offres \u00e9cart\u00e9es car pr\u00e9sentes sur Indeed</h2>
-{_tableau_statique(sur_indeed) if sur_indeed else '<p class="muted">Aucune.</p>'}
 
 <script>
 (function() {{

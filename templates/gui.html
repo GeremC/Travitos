@@ -191,8 +191,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         {{ code }} {{ label[:30] }}{% if label|length > 30 %}…{% endif %}</label>
       {% endfor %}
     </fieldset>
-    <label><input type="checkbox" name="sans_indeed">
-      Sans vérif. Indeed</label>
+
     <label><input type="checkbox" name="verbeux">
       Mode verbeux</label>
 
@@ -507,9 +506,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     const maxEnt = document.querySelector('input[name="max_entreprises"]').value;
     const nafCheckboxes = document.querySelectorAll('input[name="naf"]:checked');
     const naf = Array.from(nafCheckboxes).map(cb => cb.value);
-    const sansIndeed = document.querySelector('input[name="sans_indeed"]').checked;
     const verbeux = document.querySelector('input[name="verbeux"]').checked;
-    startScan({ mode, max_entreprises: maxEnt, naf, sans_indeed: sansIndeed, verbeux });
+    startScan({ mode, max_entreprises: maxEnt, naf, verbeux });
   });
 
   // VFX cœurs

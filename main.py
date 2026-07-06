@@ -242,7 +242,10 @@ def main():
             )[:config.MAX_VERIF_INDEED]
             for i, (ent, o) in enumerate(a_verifier, 1):
                 try:
-                    o["sur_indeed"] = indeed.sur_indeed(fetcher, ent, o)
+                    url = indeed.sur_indeed(fetcher, ent, o)
+                    if url:
+                        o["sur_indeed"] = True
+                        o["indeed_url"] = url
                 except Exception as e:
                     log.warning("check Indeed %s : %s", o.get("titre"), e)
                 if i % 10 == 0 or i == len(a_verifier):

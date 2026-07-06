@@ -43,11 +43,12 @@ def _trouve_nom_dans_texte(nom_normalise: str, mots_nom: list[str],
     return any(m in texte for m in mots_nom[:3])
 
 
-def sur_indeed(fetcher: Fetcher, ent: dict, offre: dict) -> bool:
+def sur_indeed(fetcher: Fetcher, ent: dict, offre: dict) -> str | None:
+    """Retourne l'URL Indeed de l'offre, ou None si introuvable sur Indeed."""
     titre = _nettoyer(offre.get("titre", ""))
     nom = _nom_court(ent.get("nom", ""))
     if not titre or not nom:
-        return False
+        return None
 
     mots_nom = [m for m in _normaliser(nom).split() if len(m) >= 3]
     mots_titre = [m for m in _normaliser(titre).split() if len(m) >= 4]
@@ -60,17 +61,15 @@ def sur_indeed(fetcher: Fetcher, ent: dict, offre: dict) -> bool:
         if "indeed." not in domaine(r["url"]):
             continue
         texte_resultat = _normaliser(r["titre"] + " " + r["url"])
-        if not mots_nom or any(m in texte_resultat for m in mots_nom):
+        if (mots_nom and any(m in texte_resultat for m in mots_nom)) or \
+           (mots_titre and sum(m in texte_resultat for m in mots_titre)
+            >= max(1, len(mots_titre) // 2)):
             log.info("Sur Indeed (recherche) : %s — %s", nom, titre)
-            return True
-        if mots_titre and (sum(m in texte_resultat for m in mots_titre)
-                           >= max(1, len(mots_titre) // 2)):
-            log.info("Sur Indeed (titre proche) : %s — %s", nom, titre)
-            return True
+            return r["url"]
 
     # Méthode 2 : requête directe fr.indeed.com (contourne les moteurs bloqués)
     if not mots_nom:
-        return False
+        return None
     url_indeed = (
         f"https://fr.indeed.com/jobs?q={urllib.parse.quote(titre)}"
         f"&l=Toulouse&vjk={urllib.parse.quote(nom[:20])}")
@@ -80,5 +79,5 @@ def sur_indeed(fetcher: Fetcher, ent: dict, offre: dict) -> bool:
         t = _normaliser(html[:200000])
         if _trouve_nom_dans_texte(nom_norm, mots_nom, t):
             log.info("Sur Indeed (direct) : %s — %s", nom, titre)
-            return True
-    return False
+            return url_indeed
+    return None
