@@ -69,6 +69,22 @@ button#run-btn {
 }
 button#run-btn:hover { background: #b8f33e; }
 button#run-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
+button#cancel-btn {
+  margin: 4px 0; width: 100%; padding: 8px;
+  background: #f92672; color: #fff; border: none; border-radius: 4px;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+button#cancel-btn:hover { background: #ff4081; }
+button#cancel-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
+
+/* bloquer les clics sur le panneau gauche pendant le scan (sauf cancel et toggle vue) */
+aside.scan-running input, aside.scan-running label, aside.scan-running button:not(#cancel-btn),
+aside.scan-running .toggle-btn {
+  opacity: .5; pointer-events: none;
+}
+aside.scan-running #cancel-btn, aside.scan-running .view-toggle .toggle-btn.active {
+  opacity: 1; pointer-events: auto;
+}
 
 /* Progression */
 #progress { display: flex; flex-direction: column; gap: 6px; }
@@ -181,6 +197,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       Mode verbeux</label>
 
     <button id="run-btn">Lancer l'analyse</button>
+    <button id="cancel-btn" style="display:none">Annuler le scan</button>
 
     <h2>Progression</h2>
     <div id="progress">
@@ -227,6 +244,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 <script>
 (function() {
   const runBtn = document.getElementById('run-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const aside = document.querySelector('aside');
   const output = document.getElementById('output');
   const tabConsole = document.getElementById('tab-console');
   const tabRapport = document.getElementById('tab-rapport');
@@ -405,7 +424,9 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
   function startScan(formData) {
     running = true;
-    runBtn.disabled = true;
+    runBtn.style.display = 'none';
+    cancelBtn.style.display = '';
+    aside.classList.add('scan-running');
     clearConsole();
     showTab('console');
     comptes = { sites: 0, carrieres: 0, offres: 0, traitees: 0, morts: 0 };
@@ -428,12 +449,18 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         return;
       }
       const evtSource = new EventSource('/stream');
+      function scanTermine() {
+        running = false;
+        runBtn.style.display = '';
+        cancelBtn.style.display = 'none';
+        aside.classList.remove('scan-running');
+        if (timerInterval) clearInterval(timerInterval);
+      }
+
       evtSource.onmessage = function(e) {
         if (e.data === 'null') {
           evtSource.close();
-          running = false;
-          runBtn.disabled = false;
-          if (timerInterval) clearInterval(timerInterval);
+          scanTermine();
           log('=== Terminé ===', 'line-succ');
           updateLinks();
           setTimeout(showRapport, 500);
@@ -456,18 +483,23 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       };
       evtSource.onerror = function() {
         evtSource.close();
-        running = false;
-        runBtn.disabled = false;
-        if (timerInterval) clearInterval(timerInterval);
+        scanTermine();
         log('Connexion perdue.', 'line-error');
         updateLinks();
       };
     }).catch(err => {
       log('ERREUR : ' + err, 'line-error');
-      running = false;
-      runBtn.disabled = false;
+      scanTermine();
     });
   }
+
+  cancelBtn.addEventListener('click', function() {
+    fetch('/cancel', { method: 'POST' }).then(r => r.json()).then(d => {
+      if (d.status === 'ok') {
+        log('Annulation demandée…', 'line-warn');
+      }
+    }).catch(() => {});
+  });
 
   runBtn.addEventListener('click', function() {
     if (running) return;
@@ -535,6 +567,7 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
       spawnHeartsBottom(8);
     }
   });
+  cancelBtn.addEventListener('click', function() { spawnHeartsBottom(15); });
 
   updateLinks();
 })();

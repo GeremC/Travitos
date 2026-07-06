@@ -87,6 +87,17 @@ def sortie_files(filename):
     return send_from_directory(SORTIE, filename)
 
 
+@app.route("/cancel", methods=["POST"])
+def cancel():
+    global process
+    if process is not None:
+        proc = process
+        process = None
+        proc.kill()
+        return jsonify({"status": "ok"})
+    return jsonify({"status": "aucun_scan"}), 400
+
+
 @app.route("/rapport-existe")
 def rapport_existe():
     return jsonify({
