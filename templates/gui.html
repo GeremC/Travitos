@@ -55,7 +55,7 @@ input[type="number"] {
 
 fieldset {
   border: 1px solid #3e3d32; border-radius: 4px; padding: 4px 8px;
-  max-height: 140px; overflow-y: auto;
+  max-height: 200px; overflow-y: auto;
 }
 fieldset::-webkit-scrollbar { width: 5px; }
 fieldset::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
@@ -171,8 +171,8 @@ main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     <fieldset>
       <legend>Codes NAF</legend>
       {% for code, (label, _) in naf_codes.items() %}
-      <label><input type="checkbox" name="naf" value="{{ code }}" checked>
-        {{ code }}</label>
+      <label title="{{ label }}"><input type="checkbox" name="naf" value="{{ code }}" checked>
+        {{ code }} {{ label[:30] }}{% if label|length > 30 %}…{% endif %}</label>
       {% endfor %}
     </fieldset>
     <label><input type="checkbox" name="sans_indeed">
